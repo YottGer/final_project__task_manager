@@ -26,8 +26,16 @@ const createProject = ({title, description, status}: {title: string, description
     VALUES ('${title}', '${description}', '${status}');`);
 }
 
+const createTask = ({projectId, title, description, leaders, links, startDate, endDate, tags}:
+    {projectId: number, title: string, description: string, leaders: string[], links: string[], startDate: string,
+         endDate: string, tags: string[]}) => {
+    //TODO: handle leader, links and tags relations
+    executeQuery(`INSERT INTO public.task(projectId, title, description, startDate, endDate)
+    VALUES ('${projectId}', '${title}', '${description}', '${startDate}', '${endDate}');`);
+    // DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG this query!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+}
 
-export { executeQuery, createProject };
+export { executeQuery, createProject, createTask };
 
 // TODO:
 // - Catch errors

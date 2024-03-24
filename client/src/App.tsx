@@ -1,4 +1,6 @@
+import { QueryClientProvider, QueryClient } from "react-query";
 import { createRoutesFromElements, Route, createBrowserRouter, RouterProvider } from "react-router-dom";
+
 import HomePage from "./components/pages/HomePage";
 import LoginPage from "./components/pages/LoginPage";
 import CreateProjectPage from "./components/pages/CreateProjectPage";
@@ -15,11 +17,14 @@ const routerDefinitions = createRoutesFromElements(
   </Route>
 );
 
+const queryClient = new QueryClient();
 const router = createBrowserRouter(routerDefinitions);
 
 function App() {
   return (
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   );
 }
 

@@ -1,0 +1,12 @@
+Client:
+- Styling
+- Validation (if needed)
+- Implement redux-toolkit for light/dark theme toggle
+
+Server:
+- validation
+
+Other:
+- Manage packages
+- Change path names to include - instead of _ (?)
+- Catch all errors
