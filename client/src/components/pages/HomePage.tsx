@@ -1,8 +1,8 @@
 import React from "react";
-import { useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import axios from "axios";
 import Project from "../Project";
+import Login from "../Login";
 
 export interface IProject {
     id: number
@@ -16,10 +16,9 @@ const HomePage: React.FC = (): JSX.Element => {
         return axios.get("http://localhost:5000/projects");
     })
 
-    console.log(isError);
-
     return (
         <>
+            <Login />
             <div style={{display: "flex", flexFlow: "row", justifyContent: "space-around"}}>
             {data?.data.map((project: IProject) => <Project
             key={"project" + project.id}
@@ -29,7 +28,7 @@ const HomePage: React.FC = (): JSX.Element => {
             status={project.status} />)}
             </div>
             {isLoading && <div>Loading...</div> /* Add a nicer spiner */}
-            {isError && <div>An error has occured while trying to submit the form...</div> /*TODO: Specify error*/ }
+            {isError && <div>An error has occured...</div> /*TODO: Specify error*/ }
         </>
     );
 }

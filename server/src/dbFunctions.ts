@@ -6,7 +6,7 @@ const dbClient = new Client({
     user: "postgres",
     port: 5432,
     password: "pass123",
-    database: "postgres"
+    database: "final_project__task_manager"
 });
 
 dbClient.connect();
@@ -21,21 +21,27 @@ const executeQuery = (query: string, response?: Response) => {
     dbClient.end;
 }
 
-const createProject = ({title, description, status}: {title: string, description: string, status: string}) => {
+const createProject = ({ title, description, status}: {title: string, description: string, status: string }) => {
     executeQuery(`INSERT INTO public.project(title, description, status)
     VALUES ('${title}', '${description}', '${status}');`);
 }
 
-const createTask = ({projectId, title, description, leaders, links, startDate, endDate, tags}:
+const createTask = ({ projectId, title, description, leaders, links, startDate, endDate, tags }:
     {projectId: number, title: string, description: string, leaders: string[], links: string[], startDate: string,
          endDate: string, tags: string[]}) => {
     //TODO: handle leader, links and tags relations
-    executeQuery(`INSERT INTO public.task(projectId, title, description, startDate, endDate)
-    VALUES ('${projectId}', '${title}', '${description}', '${startDate}', '${endDate}');`);
-    // DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG this query!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    executeQuery(`INSERT INTO public.task("projectId", title, description, "startDate", "endDate", tags)
+    VALUES (${projectId}, '${title}', '${description}', '${startDate}', '${endDate}', Array[${
+        tags.map(tagStr => "'" + tagStr + "'")
+    }]);`);
+    
 }
 
-export { executeQuery, createProject, createTask };
+const createComment = ({ taskId, title, content }: {taskId: number, title: string, content: string}) => {
+    executeQuery(`INSERT INTO public.comment("taskId", title, content) VALUES (${taskId}, '${title}', '${content}');`);
+}
+
+export { executeQuery, createProject, createTask, createComment };
 
 // TODO:
 // - Catch errors

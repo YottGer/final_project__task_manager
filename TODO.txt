@@ -10,3 +10,4 @@ Other:
 - Manage packages
 - Change path names to include - instead of _ (?)
 - Catch all errors
+- Make the entire code prettier

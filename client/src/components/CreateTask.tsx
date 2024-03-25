@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TextField, Autocomplete, Button, FormLabel } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
-import { useMutation } from "react-query";
+import { useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 
 const CreateTask: React.FC = (): JSX.Element => {
@@ -12,12 +12,11 @@ const CreateTask: React.FC = (): JSX.Element => {
 
     const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
 
-    const navigate = useNavigate();
-
+    const queryClient = useQueryClient();
     const {mutate, isLoading, isError, error} = useMutation((data: object) => {
         return axios.post("http://localhost:5000/create_task", data);
     }, {
-        onSuccess: () => {navigate(`/project/${projectId}`)}
+        onSuccess: () => {queryClient.invalidateQueries('fetch-tasks' + projectId);}
     })
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -84,3 +83,5 @@ export default CreateTask;
 
 //TODO: Validation (In addition to server-side validation?)
 // TODO: Handle code duplivation (see createProject...)
+//TODO: Prevent form completion suggestions
+//TODO: reset form after succsess (onSuccess)

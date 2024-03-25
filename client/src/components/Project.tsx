@@ -3,7 +3,7 @@ import { IProject } from "./pages/HomePage";
 import { Card, CardActionArea, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
-const Project: React.FC<IProject> = ({id, title, description, status}): JSX.Element => {
+const Project: React.FC<IProject> = ({ id, title, description, status }): JSX.Element => {
     return (
         <Card>
             <CardActionArea component={Link} to={`/project/${id}`}>
