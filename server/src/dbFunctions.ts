@@ -11,13 +11,14 @@ const dbClient = new Client({
 
 dbClient.connect();
 
-const executeQuery = (query: string, response?: Response) => {
-
+const executeQuery = (query: string, response?: Response, next?: Function) => {
+    let toReturn;
     dbClient.query(query, (err: Error, result: QueryResult): void => {
-    // if (err) ...
-    if (response) response.send(result.rows);
+        // if (err) ...
+        if (response) response.send(result.rows);
+        if (next) next(result.rows);
     });
-    
+
     dbClient.end;
 }
 

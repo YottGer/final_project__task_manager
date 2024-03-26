@@ -3,12 +3,19 @@ import { TextField, RadioGroup, FormControlLabel, Radio, FormLabel, Button } fro
 import { useMutation } from "react-query";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const CreateProjectPage: React.FC = (): JSX.Element => {
+    const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'
+    console.log("create project page token ", accessToken);
     const navigate = useNavigate();
 
     const {mutate, isLoading, isError, error} = useMutation((data: object) => {
-        return axios.post("http://localhost:5000/create_project", data);
+        return axios.post("http://localhost:5000/create_project", data, {
+            headers: {
+                Authorization: "Bearer " + accessToken
+            }
+        });
     }, {
         onSuccess: () => {navigate("/")}
     })

@@ -8,17 +8,16 @@ const secret = "b6506e25c723b2327383c15ed6342a320857cf16035460504f09d1ee92f39284
 const refreshSecret = "411c3b1fb19ca25127a3360a266feaa84312f05ddb1627e82aa27e3b7a7ddf7e8872b0f95a2fe7877bc753570af30d324f3410bbd64bd05f7771ae1316db32ab";
 //TODO: hide the secretes in another file
 
-const authToken = (req: Request, res: Response, next: Function) => {
+const autherizeToken = (req: Request, res: Response, next: Function) => {
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(' ')[1]; // authorization: Bearer <token>
+    const token = authHeader && authHeader.split(' ')[1]; // (Authorization: )Bearer <token>
     if (!token) return res.sendStatus(401);
 
-    verify(token, secret, (err, user) => {
-        if (err) return res.sendStatus(403); // authorization failed
-        next(user)
+    verify(token, secret, (err, username) => {
+        if (err) return res.status(403).send("authorization failed. try again..."); // authorization failed
+        next(username)
     })
 }
-//use and DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG!!!!
 
 const router = express();
 
@@ -56,14 +55,28 @@ router.post("/create_comment", (req, res) => {
     res.status(200).send("OK");
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    // Authenticate
-    const user = {name: username};
-    const accessToken = sign(user, secret);
-    res.send({ accessToken })
+    executeQuery(
+    `SELECT * FROM public.user WHERE username='${username}' AND password='${password}';`,
+    undefined,
+    (queryResult: string) => {
+        if (queryResult.length > 0) {
+            const user = {name: username};
+            const accessToken = sign(user, secret);
+            res.send({ accessToken }); // bug!!! Error: Cannot set headers after they are sent to the client
+            return;
+        }
+        res.status(401).send("Login failed - try again...");
+    });
 });
+
+router.post("/test_auth", (req, res) => {
+    autherizeToken(req, res, (user: {name: string}) => {
+        res.send("hello " + user.name);
+    })
+})
 
 const port = process.env.PORT || 5000;
 router.listen(port, () => console.log(`Listening on port ${port}...`));
