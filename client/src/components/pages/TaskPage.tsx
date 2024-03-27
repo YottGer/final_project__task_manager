@@ -35,7 +35,8 @@ const TaskPage: React.FC = (): JSX.Element => {
         <Typography variant="body1">description: {detailsData?.data[0].description}</Typography>
         <Typography variant="body1">start date: {detailsData?.data[0].startDate}</Typography>
         <Typography variant="body1">end date: {detailsData?.data[0].endDate}</Typography>
-        <Typography variant="body1">start date: {detailsData?.data[0].tags?.map((tagStr: string) => <Chip color="info" label={tagStr} />)}</Typography>
+        <Typography variant="body1">tags: {detailsData?.data[0].tags?.map((tagStr: string) => <Chip color="info" label={tagStr} />)}</Typography>
+        <Typography variant="body1">links: {detailsData?.data[0].links?.map((linkStr: string) => <a href={linkStr}>{linkStr}</a>)}</Typography>
         <Typography variant="h2">Comments:</Typography>
         {commentsIsLoading && <div>Loading comments...</div> /* Add a nicer spiner */}
         {commentsIsError && <div>An error has occured</div> /*TODO: Specify error*/ }

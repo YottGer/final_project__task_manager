@@ -6,6 +6,10 @@ Client:
 Server:
 - validation
 
+DB:
+- create tagId <-> tagString table and save tagIds in the task record instead of text[]
+- read about the text[] in postgreSQL and check wether it is easy to access it in native SQL. if not, change to link table
+
 Other:
 - Manage packages
 - Change path names to include - instead of _ (?)

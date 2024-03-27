@@ -8,8 +8,6 @@ import { setToken } from "../features/accessToken/accessTokenSlice";
 let accessToken: string;
 
 const Login: React.FC = (): JSX.Element => {
-    const accessToken1 = useSelector((state: any) => state.accessToken); // fix 'any'
-    console.log(accessToken1);
     const dispatch = useDispatch();
 
     const { mutate, isLoading, isError, error } = useMutation((data: object) => {
@@ -59,8 +57,7 @@ export default Login;
 
 /*
 I don't understand - am I using redux-toolkit correctly?
-I thought the accessToken wouldn't reset after refresh/re-render, but it clearly does!
-So I see I need to use localStorage, but then how does redux help me?
+how does redux help me?
 In addition, I don't understand the authentication process - why do I need JWT?
 I transfer the JWT instead of (username, hashed-password), but what's the difference?
 Security? Is it more secure that sending hashed-password?
@@ -68,3 +65,14 @@ Interception? can't the JWT be intercepted either?
 And about admin status - can't I store the "isAdmin" on client somehow?
 It seems unneccessary to check isAdmin every single time.
 */
+
+/*error: 
+A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
+    _pStore.dispatch({
+      type: _constants__WEBPACK_IMPORTED_MODULE_0__.REGISTER,
+      key: key
+    });
+  } 
+*/
+
+//So, I get the above error, and I don't understand what it means, but the token persists between refreshes!!!

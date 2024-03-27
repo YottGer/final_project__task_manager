@@ -3,6 +3,7 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import Project from "../Project";
 import Login from "../Login";
+import { useSelector } from "react-redux";
 
 export interface IProject {
     id: number
@@ -12,8 +13,15 @@ export interface IProject {
 }
 
 const HomePage: React.FC = (): JSX.Element => {
+    const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!1
+    console.log("home page token ", accessToken);
+
     const { data, isLoading, isError, error } = useQuery("fetch-projects", () => {
-        return axios.get("http://localhost:5000/projects");
+        return axios.get("http://localhost:5000/projects", {
+            headers: {
+                Authorization: "Bearer " + accessToken
+            }
+        });
     })
 
     return (
