@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useReducer } from "react";
 import { useMutation } from "react-query";
 import axios from "axios";
 import { TextField, Button } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken } from "../features/accessToken/accessTokenSlice";
+import { setToken, setUsername } from "../features/accessToken/accessTokenSlice";
 
 let accessToken: string;
 
@@ -16,6 +16,8 @@ const Login: React.FC = (): JSX.Element => {
         onSuccess: (data) => {
             accessToken = data?.data.accessToken;
             dispatch(setToken(accessToken));
+            console.log(data?.data.username)
+            dispatch(setUsername(data?.data.username))
             console.log("login token " + accessToken);
         },
         onError: (error) => {
@@ -31,9 +33,12 @@ const Login: React.FC = (): JSX.Element => {
         mutate(data);
     }
 
+    const username = useSelector((state: any) => state.username); // fix 'any'!!!!!!!!!!!!!!!
+
     return(
         <>
-            <form onSubmit={handleSubmit}>
+        {console.log(username)}
+        {!username ? <><form onSubmit={handleSubmit}>
                 <TextField label="username" name="username" />
                 <TextField label="password" name="password" type="password" />
                 <Button type="submit">submit</Button>
@@ -46,9 +51,10 @@ const Login: React.FC = (): JSX.Element => {
                     Authorization: "Bearer " + accessToken
                 }});
                 console.log(response.data)
-            }}>test auth</Button>
+            }}>test auth</Button></> : "hello " + username}
         </>
     );
+    // DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG!!!!!!!
 }
 
 export default Login;

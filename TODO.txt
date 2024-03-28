@@ -9,6 +9,8 @@ Server:
 DB:
 - create tagId <-> tagString table and save tagIds in the task record instead of text[]
 - read about the text[] in postgreSQL and check wether it is easy to access it in native SQL. if not, change to link table
+- make sure no repeated strings are stored in the db. for example - change the "status" column of a project from text
+  to integer, refrencing the id of a row in a table with two columns - statusId, statusText.
 
 Other:
 - Manage packages

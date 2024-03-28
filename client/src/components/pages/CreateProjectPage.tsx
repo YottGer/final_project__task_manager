@@ -36,7 +36,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
         () => {
             return axios.get("http://localhost:5000/users", {
             headers: {
-                Authorization: "Bearer " + accessToken
+                Authorization: "Bearer " + accessToken.token
             }
         }
         );

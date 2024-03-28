@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { TextField, Autocomplete, Button, FormLabel } from "@mui/material";
+import { TextField, Autocomplete, Button, FormLabel, CircularProgress } from "@mui/material";
 import { useParams } from "react-router-dom";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient, useQuery } from "react-query";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const CreateTask: React.FC = (): JSX.Element => {
-    const [leaders, setLeaders] = useState(Array<string>());
+    const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
+    const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
     const [links, setLinks] = useState(Array<string>());
     const [tags, setTags] = useState(Array<string>());
     // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
@@ -27,6 +29,18 @@ const CreateTask: React.FC = (): JSX.Element => {
         mutate(data);
     }
 
+    const {data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useQuery(
+        "fetch-users",
+        () => {
+            return axios.get("http://localhost:5000/users", {
+            headers: {
+                Authorization: "Bearer " + accessToken
+            }
+        }
+        );
+        }
+    );
+
     return (
         <>
             <form onSubmit={handleSubmit} style={{
@@ -38,12 +52,23 @@ const CreateTask: React.FC = (): JSX.Element => {
                 <Autocomplete
                     onChange={(event, value) => setLeaders(value)}
                     multiple
-                    limitTags={2}
-                    options={["dummy1", "dummy2"]}
-                    // getOptionLabel={(option) => option.title} // TODO: Remove comment if not necessary
-                    renderInput={(params) => (
-                        <TextField {...params} placeholder="Leaders"/>
-                    )}
+                    limitTags={3}
+                    options={users ? users.data : []}
+                    loading={usersLoading}
+                    getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
+                    renderInput={(params) => 
+                        <TextField
+                            {...params}
+                            placeholder="leaders"
+                            InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                                <>
+                                {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                                </>
+                            ),
+                            }} />}
                     sx={{ width: '500px' }}
                 />
                 <Autocomplete

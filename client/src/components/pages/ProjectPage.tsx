@@ -4,6 +4,7 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import Task from "../Task";
+import UpdateProject from "../UpdateProject";
 
 export interface ITask {
     id: number,
@@ -18,12 +19,25 @@ export interface ITask {
 const ProjectPage: React.FC = (): JSX.Element => {
     const projectId = useParams().project_id;
 
+    const { data: detailsData, isLoading: detailsLoading, isError: detailsIsError, error: detailsError } =
+     useQuery("fetch-details" + projectId, () => {
+        return axios.get(`http://localhost:5000/project/${projectId}`);
+    })
+
     const { data, isLoading, isError, error } = useQuery("fetch-tasks" + projectId, () => {
         return axios.get(`http://localhost:5000/project/${projectId}/tasks`);
     })
 
     return (
         <>
+        {detailsLoading && <div>Loading...</div> /* Add a nicer spiner */}
+        {detailsIsError && <div>An error has occured</div> /*TODO: Specify error*/ }
+        <div>title: {detailsData?.data.title}</div>
+        <div>description: {detailsData?.data.description}</div>
+        <div>status: {detailsData?.data.status}</div>
+        {console.log(detailsData?.data)}
+        <div>team: {detailsData?.data.team.map((teamMember: any) => teamMember.username)}</div> {/*fix any!!!*/}
+
         <div style={{display: "flex", flexFlow: "row", justifyContent: "space-around"}}>
             {data?.data.map((task: ITask) => <Task
             key={"task" + task.id}
@@ -39,6 +53,7 @@ const ProjectPage: React.FC = (): JSX.Element => {
         {isLoading && <div>Loading...</div> /* Add a nicer spiner */}
         {isError && <div>An error has occured</div> /*TODO: Specify error*/ }
         <CreateTask />
+        <UpdateProject />
         </>
     );
 }

@@ -19,7 +19,7 @@ const HomePage: React.FC = (): JSX.Element => {
     const { data, isLoading, isError, error } = useQuery("fetch-projects", () => {
         return axios.get("http://localhost:5000/projects", {
             headers: {
-                Authorization: "Bearer " + accessToken
+                Authorization: "Bearer " + accessToken.token
             }
         });
     })
