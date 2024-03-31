@@ -1,5 +1,5 @@
-import React from "react";
-import { TextField, Button } from "@mui/material";
+import React, { useState } from "react";
+import { TextField, Button, Dialog, CircularProgress } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useQueryClient, useMutation } from "react-query";
 import axios from "axios";
@@ -8,10 +8,13 @@ const CreateComment: React.FC = (): JSX.Element => {
     const taskId = parseInt(useParams().task_id ?? '-1'); // id can't be negative
 
     const queryClient = useQueryClient();
-    const {mutate, isLoading, isError, error} = useMutation((data: object) => {
+    const {mutate, isLoading, isError, error } = useMutation((data: object) => {
         return axios.post("http://localhost:5000/create_comment", data);
     }, {
-        onSuccess: () => {queryClient.invalidateQueries('fetch-comments' + taskId);}
+        onSuccess: () => {
+            queryClient.invalidateQueries('fetch-comments' + taskId);
+            setOpen(false);
+        }
     })
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -22,18 +25,31 @@ const CreateComment: React.FC = (): JSX.Element => {
         mutate(data);
     }
 
+    const [open, setOpen] = useState(false);
+
     return (
     <>
-        <form onSubmit={handleSubmit} style={{
-            display: "flex",
-            flexDirection: "column",   
-        }}>
-            <TextField label="title" name="title" />
-            <TextField label="content" name="content" />
-            <Button type="submit">submit</Button>
-        </form>
-        {isLoading && <div>Submitting form...</div>}
-        {isError && <div>An error has occured while trying to submit the form...</div> /*TODO: Specify error*/ }
+        <Button onClick={() => setOpen(true)}>Create a new comment</Button>
+        <Dialog open={open} onClose={() => setOpen(false)}>
+            <form onSubmit={handleSubmit} style={{
+                display: "flex",
+                flexDirection: "column",   
+            }}>
+                <TextField label="title" name="title" margin="normal" />
+                <TextField label="content" name="content" margin="normal" />
+                <Button type="submit">submit</Button>
+            </form>
+            <>
+            {isLoading && 
+                <>
+                    Creating comment...
+                    <br />
+                    <CircularProgress />
+                </>
+            }
+            {isError && error /* add a nice error page */}
+            </>
+        </Dialog>
     </>
     );
 }

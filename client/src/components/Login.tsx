@@ -1,7 +1,8 @@
 import React, { useReducer } from "react";
 import { useMutation } from "react-query";
 import axios from "axios";
-import { TextField, Button } from "@mui/material";
+import { Grid, Paper, Avatar, TextField, Button, Typography, CircularProgress } from "@mui/material";
+import LockIcon from '@mui/icons-material/Lock';
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername } from "../features/accessToken/accessTokenSlice";
 
@@ -34,27 +35,50 @@ const Login: React.FC = (): JSX.Element => {
     }
 
     const username = useSelector((state: any) => state.username); // fix 'any'!!!!!!!!!!!!!!!
+    const paperStyle = {padding: 20, height: '37.5vh', width: 280, margin: "20px auto"};
 
     return(
         <>
-        {console.log(username)}
-        {!username ? <><form onSubmit={handleSubmit}>
-                <TextField label="username" name="username" />
-                <TextField label="password" name="password" type="password" />
-                <Button type="submit">submit</Button>
-            </form>
-            {isLoading && <div>Submitting form...</div>}
-            {isError && <div>An error has occured...</div> /*TODO: Specify error*/ }
-            <Button onClick={async () => {
-                const response = await axios.post("http://localhost:5000/test_auth", "", {
-                headers: {
-                    Authorization: "Bearer " + accessToken
-                }});
-                console.log(response.data)
-            }}>test auth</Button></> : "hello " + username}
+            <Paper elevation={10} style={paperStyle}>
+                <Grid display="flex" justifyContent="center" alignItems="center" flexDirection="column">
+                    <Avatar><LockIcon /></Avatar>
+                    <form onSubmit={handleSubmit}>
+                        <Typography variant="h5">Login</Typography>
+                        <TextField
+                            name="username" 
+                            label="Username" 
+                            placeholder="Enter username" 
+                            fullWidth 
+                            required
+                            style={{margin: "10px"}} />
+                        <TextField
+                            name="password"
+                            label="Password" 
+                            placeholder="Enter password" 
+                            type="password" 
+                            fullWidth 
+                            required
+                            style={{margin: "10px"}} />
+                        <Grid display="flex" justifyContent="center">
+                            <Button 
+                            type="submit" 
+                            color="primary" 
+                            variant="contained"
+                            >Login</Button>
+                        </Grid>
+                    </form>
+                </Grid>
+            </Paper>
+            {isLoading && 
+                <>
+                    Logging in...
+                    <br />
+                    <CircularProgress />
+                </>
+            }
+            {isError && error /* add a nice error page */}
         </>
     );
-    // DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGG!!!!!!!
 }
 
 export default Login;

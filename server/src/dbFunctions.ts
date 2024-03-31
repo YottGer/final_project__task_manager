@@ -13,7 +13,8 @@ dbClient.connect();
 
 const executeQuery = (query: string, response?: Response, next?: Function) => {
     dbClient.query(query, (err: Error, result: QueryResult): void => {
-        // if (err) ...
+        // if (err) ... !!!!!!!!!!!!!!!!!!!!!!!!
+        console.log(result.rows);
         if (response) response.send(result.rows);
         if (next) next(result.rows);
     });

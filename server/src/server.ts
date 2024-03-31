@@ -41,8 +41,12 @@ router.use("/create_project", autherizeToken);
 router.use("/test_auth", autherizeToken);
 
 // routes
-router.get("/projects", (req, res) => {
-    executeQuery("SELECT * FROM public.project;", res);
+router.get("/projects", (req: any, res) => { // fix any!!!!!!!!!!!!!
+    const username = req.username;
+    executeQuery(`SELECT "projectId" AS id, title, description, status FROM project
+	                INNER JOIN project_to_user ON project.id=project_to_user."projectId"
+	                INNER JOIN "user" ON project_to_user."userId"="user".id
+	                WHERE username='${username}';`, res);
 })
 
 router.get("/project/:projectId", (req, res) => {

@@ -2,6 +2,7 @@ Client:
 - Styling
 - Validation (if needed)
 - Implement redux-toolkit for light/dark theme toggle
+- Implement background fetching signaling
 
 Server:
 - validation
@@ -17,3 +18,15 @@ Other:
 - Change path names to include - instead of _ (?)
 - Catch all errors
 - Make the entire code prettier
+- in home page (?), error in the console:
+
+A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
+    _pStore.dispatch({
+      type: _constants__WEBPACK_IMPORTED_MODULE_0__.REGISTER,
+      key: key
+    });
+  } 
+Take a look at the logic that dispatched this action:  Object 
+(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
+(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)
+

@@ -82,9 +82,14 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
                 </RadioGroup>
                 <Button type="submit">Submit</Button>
             </form>
-            
-            {isLoading && <div>Submitting form...</div>}
-            {isError && <div>An error has occured while trying to submit the form...</div> /*TODO: Specify error*/ }
+            {isLoading && 
+                <>
+                    Creating project...
+                    <br />
+                    <CircularProgress />
+                </>
+            }
+            {isError && error /* add a nice error page */}
         </>
     );
 }

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { TextField, Autocomplete, Button, FormLabel, CircularProgress } from "@mui/material";
+import { TextField, Autocomplete, Button, FormLabel, CircularProgress, Dialog, Box } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "react-query";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { setSourceMapsEnabled } from "process";
+import { WidthFull } from "@mui/icons-material";
 
 const CreateTask: React.FC = (): JSX.Element => {
     const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
+    
     const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
     const [links, setLinks] = useState(Array<string>());
     const [tags, setTags] = useState(Array<string>());
@@ -18,7 +21,10 @@ const CreateTask: React.FC = (): JSX.Element => {
     const {mutate, isLoading, isError, error} = useMutation((data: object) => {
         return axios.post("http://localhost:5000/create_task", data);
     }, {
-        onSuccess: () => {queryClient.invalidateQueries('fetch-tasks' + projectId);}
+        onSuccess: () => {
+            queryClient.invalidateQueries('fetch-tasks' + projectId);
+            setOpen(false);
+        }
     })
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -41,65 +47,78 @@ const CreateTask: React.FC = (): JSX.Element => {
         }
     );
 
+    const [open, setOpen] = useState(false);
+
     return (
         <>
-            <form onSubmit={handleSubmit} style={{
-                display: "flex",
-                flexDirection: "column",   
-            }}>
-                <TextField label="Task title" name="title" type="text" margin="normal"/>
-                <TextField label="Task description" name="description" type="text"  margin="normal"/>
-                <Autocomplete
-                    onChange={(event, value) => setLeaders(value)}
-                    multiple
-                    limitTags={3}
-                    options={users ? users.data : []}
-                    loading={usersLoading}
-                    getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
-                    renderInput={(params) => 
-                        <TextField
-                            {...params}
-                            placeholder="leaders"
-                            InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                                <>
-                                {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                                </>
-                            ),
-                            }} />}
-                    sx={{ width: '500px' }}
-                />
-                <Autocomplete
-                    onChange={(event, value) => setLinks(value)}
-                    multiple
-                    freeSolo
-                    options={[]}
-                    renderInput={(params) => (
-                        <TextField {...params} placeholder="Linked add-ons"/>
-                    )}
-                    sx={{ width: '500px' }}
-                />
-                <FormLabel>Start date</FormLabel>
-                <input type="date" name="startDate"/>
-                <FormLabel>End date</FormLabel>
-                <input type="date" name="endDate"/>            
-                <Autocomplete
-                    onChange={(event, value) => setTags(value)}
-                    multiple
-                    limitTags={4}
-                    options={["Frontend", "Design", "React", "DB", "Backend"]}
-                    // getOptionLabel={(option) => option.title} // TODO: Remove comment if not necessary
-                    renderInput={(params) => (
-                        <TextField {...params} placeholder="Tags" />
-                    )}
-                    sx={{ width: '500px' }}
-                />
-                <Button type="submit">Submit</Button>
-            </form>
-            {isLoading && <div>Submitting form...</div>}
-            {isError && <div>An error has occured while trying to submit the form...</div> /*TODO: Specify error*/ }
+            <Button onClick={() => setOpen(true)} variant="contained">Create a new task</Button>
+            <Dialog open={open} onClose={() => setOpen(false)}>
+                <>
+                    <form onSubmit={handleSubmit} style={{
+                        display: "flex",
+                        flexDirection: "column",   
+                    }}>
+                        <TextField label="Task title" name="title" type="text" margin="normal"/>
+                        <TextField label="Task description" name="description" type="text"  margin="normal"/>
+                        <Autocomplete
+                            onChange={(event, value) => setLeaders(value)}
+                            multiple
+                            limitTags={3}
+                            options={users ? users.data : []}
+                            loading={usersLoading}
+                            getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
+                            renderInput={(params) => 
+                                <TextField
+                                    {...params}
+                                    placeholder="leaders"
+                                    InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <>
+                                        {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                        </>
+                                    ),
+                                    }} />}
+                            sx={{ width: '500px' }}
+                        />
+                        <Autocomplete
+                            onChange={(event, value) => setLinks(value)}
+                            multiple
+                            freeSolo
+                            options={[]}
+                            renderInput={(params) => (
+                                <TextField {...params} placeholder="Linked add-ons"/>
+                            )}
+                            sx={{ width: '500px' }}
+                        />
+                        <FormLabel>Start date</FormLabel>
+                        <input type="date" name="startDate"/>
+                        <FormLabel>End date</FormLabel>
+                        <input type="date" name="endDate"/>            
+                        <Autocomplete
+                            onChange={(event, value) => setTags(value)}
+                            multiple
+                            limitTags={4}
+                            options={["Frontend", "Design", "React", "DB", "Backend"]}
+                            // getOptionLabel={(option) => option.title} // TODO: Remove comment if not necessary
+                            renderInput={(params) => (
+                                <TextField {...params} placeholder="Tags" />
+                            )}
+                            sx={{ width: '500px' }}
+                        />
+                        <Button type="submit">Submit</Button>
+                    </form>
+                    {isLoading && 
+                        <>
+                            Creating task...
+                            <br />
+                            <CircularProgress />
+                        </>
+                    }
+                    {isError && error /* add a nice error page */}
+                </>
+            </Dialog>
         </>
     );
 }
