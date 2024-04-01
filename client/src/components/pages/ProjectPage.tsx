@@ -14,7 +14,8 @@ export interface ITask {
     description: string,
     startDate: string,
     endDate: string,
-    tags: string[]
+    tags: string[],
+    status: string
 }
 
 const ProjectPage: React.FC = (): JSX.Element => {
@@ -62,6 +63,7 @@ const ProjectPage: React.FC = (): JSX.Element => {
                     startDate={task.startDate}
                     endDate={task.endDate}
                     tags={task.tags}
+                    status={task.status}
                 />)}
             </List>
             {(isLoading || isFetching) && 

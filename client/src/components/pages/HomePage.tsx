@@ -46,7 +46,8 @@ const HomePage: React.FC = (): JSX.Element => {
             isLoggedIn && 
             <>
                 <Typography variant="h6">welcome {username}!</Typography>
-                <Button onClick={logout}>Logout</Button>    
+                <Button onClick={logout}>Logout</Button>
+                <Typography variant="h5">Your projects:</Typography>    
                 <List>
                 {data?.data.map((project: IProject) =>
                 <Project

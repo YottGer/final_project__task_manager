@@ -3,9 +3,14 @@ Client:
 - Validation (if needed)
 - Implement redux-toolkit for light/dark theme toggle
 - Implement background fetching signaling
+- handle client error (runtime!) - for example, when trying to create/update a project as non-admin
+- arrange paths correctly (project/:projectId/task/:taskId...)
+- create a generic component for CreateProject and UpdateProject...
+- create a generic modal component (for UpdateProject, UpdateTask ...)
 
 Server:
 - validation
+- refresh token
 
 DB:
 - create tagId <-> tagString table and save tagIds in the task record instead of text[]

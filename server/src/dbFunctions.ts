@@ -14,7 +14,6 @@ dbClient.connect();
 const executeQuery = (query: string, response?: Response, next?: Function) => {
     dbClient.query(query, (err: Error, result: QueryResult): void => {
         // if (err) ... !!!!!!!!!!!!!!!!!!!!!!!!
-        console.log(result.rows);
         if (response) response.send(result.rows);
         if (next) next(result.rows);
     });
@@ -32,24 +31,16 @@ const createProject = ({ title, description, team, status}:
         });  
 }
 
-const createTask = ({ projectId, title, description, leaders, links, startDate, endDate, tags }:
+const createTask = ({ projectId, title, description, leaders, links, startDate, endDate, tags, status }:
     {projectId: number, title: string, description: string, leaders: any[], links: string[], startDate: string,
-         endDate: string, tags: string[]}) => { // fix any!!!!!!!
-    console.log(`INSERT INTO public.task("projectId", title, description, "startDate", "endDate", tags, links)
+         endDate: string, tags: string[], status: string}) => { // fix any!!!!!!!
+    executeQuery(`INSERT INTO public.task("projectId", title, description, "startDate", "endDate", tags, links, status)
     VALUES (${projectId}, '${title}', '${description}', '${startDate}', '${endDate}', Array[${
         tags.map(tagStr => "'" + tagStr + "'")
     }], Array[${
         links.map(linkStr => "'" + linkStr + "'")
-    }]) RETURNING id;`);
-    executeQuery(`INSERT INTO public.task("projectId", title, description, "startDate", "endDate", tags, links)
-    VALUES (${projectId}, '${title}', '${description}', '${startDate}', '${endDate}', Array[${
-        tags.map(tagStr => "'" + tagStr + "'")
-    }], Array[${
-        links.map(linkStr => "'" + linkStr + "'")
-    }]) RETURNING id;`, undefined, (taskIdRows: any[]) => { // fix any!!!!!!!!!!!1
+    }], '${status}') RETURNING id;`, undefined, (taskIdRows: any[]) => { // fix any!!!!!!!!!!!1
         leaders.forEach((leader) => {
-            console.log(`INSERT INTO public.task_to_user("taskId", "userId") VALUES (${taskIdRows[0].id},
-                (SELECT id FROM public.user WHERE username='${leader.username}'));`)
             executeQuery(`INSERT INTO public.task_to_user("taskId", "userId") VALUES (${taskIdRows[0].id},
             (SELECT id FROM public.user WHERE username='${leader.username}'));`)});
     });

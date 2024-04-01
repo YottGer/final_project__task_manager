@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { TextField, Autocomplete, Button, FormLabel, CircularProgress, Dialog, Box } from "@mui/material";
+import { TextField, Autocomplete, Button, FormLabel, CircularProgress, Dialog, RadioGroup, FormControlLabel,
+ Radio } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "react-query";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { setSourceMapsEnabled } from "process";
-import { WidthFull } from "@mui/icons-material";
 
 const CreateTask: React.FC = (): JSX.Element => {
-    const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
+    const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     
     const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
     const [links, setLinks] = useState(Array<string>());
@@ -38,9 +37,9 @@ const CreateTask: React.FC = (): JSX.Element => {
     const {data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useQuery(
         "fetch-users",
         () => {
-            return axios.get("http://localhost:5000/users", {
+            return axios.get(`http://localhost:5000/project/${projectId}/team`, {
             headers: {
-                Authorization: "Bearer " + accessToken
+                Authorization: "Bearer " + token
             }
         }
         );
@@ -107,6 +106,13 @@ const CreateTask: React.FC = (): JSX.Element => {
                             )}
                             sx={{ width: '500px' }}
                         />
+                        <FormLabel>Status</FormLabel> {/* DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG!!!!!!!! */}
+                        <RadioGroup name="status" defaultValue="pending">
+                            <FormControlLabel value="pending" control={<Radio />} label="pending" />
+                            <FormControlLabel value="development" control={<Radio />} label="development" />
+                            <FormControlLabel value="maintenance" control={<Radio />} label="maintenance" />
+                            <FormControlLabel value="done" control={<Radio />} label="done" />
+                        </RadioGroup>
                         <Button type="submit">Submit</Button>
                     </form>
                     {isLoading && 

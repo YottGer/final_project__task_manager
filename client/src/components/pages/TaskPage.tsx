@@ -5,6 +5,7 @@ import { Typography, Chip, List, ListItem, CircularProgress } from "@mui/materia
 import { useParams } from "react-router-dom";
 import CreateComment from "../CreateComment";
 import Comment from "../Comment";
+import UpdateTaskStatus from "../UpdateTaskStatus";
 
 export interface IComment {
     id: number,
@@ -75,6 +76,7 @@ const TaskPage: React.FC = (): JSX.Element => {
             <Comment {...comment} />)}
         </List>
         <CreateComment />
+        <UpdateTaskStatus />
         </>
     );
 }

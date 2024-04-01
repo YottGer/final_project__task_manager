@@ -12,17 +12,18 @@ const refreshSecret = "411c3b1fb19ca25127a3360a266feaa84312f05ddb1627e82aa27e3b7
 const autherizeToken = (req: Request, res: Response, next: Function) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(' ')[1]; // (Authorization: )Bearer <token>
-    console.log("in middlewar before vefiry");
-    console.log("token: ", token);
     if (!token) return res.sendStatus(401);
     verify(token, secret, (err, user: any) => { // fix any!!!!
         console.log(err)
         // if (err) return res.status(403).send("authorization failed. try again..."); // authorization failed
         // Why doesn't the above line work?!?!?!!?!??!!?!?!?
-        console.log("in middleware");
-        console.log(user);
         Object.assign(req, {username: user?.name});
-        next();
+        executeQuery(`SELECT "isAdmin" FROM public.user WHERE username='${user?.name}';`, undefined, (userRows: any[]) => {
+            // fix any!!!!!!!!!!!!!!!!!
+            Object.assign(req, {isAdmin: userRows[0].isAdmin});
+            next();
+        });
+
     })
 }
 
@@ -38,15 +39,18 @@ router.use("/projects", autherizeToken);
 router.use("/create_project", autherizeToken);
 // router.use("/create_task", autherizeToken);
 // router.use("/create_comment", autherizeToken);
-router.use("/test_auth", autherizeToken);
+router.use("/project/:projectId/update", autherizeToken);
 
 // routes
 router.get("/projects", (req: any, res) => { // fix any!!!!!!!!!!!!!
-    const username = req.username;
-    executeQuery(`SELECT "projectId" AS id, title, description, status FROM project
-	                INNER JOIN project_to_user ON project.id=project_to_user."projectId"
-	                INNER JOIN "user" ON project_to_user."userId"="user".id
-	                WHERE username='${username}';`, res);
+    const { username, isAdmin } = req;
+    if (isAdmin) {
+        executeQuery(`SELECT * FROM public.project;`, res);
+    } else
+        executeQuery(`SELECT DISTINCT ON ("projectId") "projectId" AS id, title, description, status FROM project
+                        INNER JOIN project_to_user ON project.id=project_to_user."projectId"
+                        INNER JOIN "user" ON project_to_user."userId"="user".id
+                        WHERE username='${username}';`, res);
 })
 
 router.get("/project/:projectId", (req, res) => {
@@ -107,25 +111,37 @@ router.get("/users", (req, res) => {
     executeQuery("SELECT username FROM public.user;", res);
 });
 
+router.get("/project/:projectId/team", (req, res) => {
+    executeQuery(`SELECT DISTINCT ON (username) username FROM public.project
+                    INNER JOIN public.project_to_user ON project.id=project_to_user."projectId"
+                    INNER JOIN public.user ON project_to_user."userId"="user".id
+                    WHERE "projectId"=${req.params.projectId};`, res);
+});
+
 router.post("/create_project", (req: any, res) => { // fix any!!!!
     const username = req.username;
-    console.log("in create project route");
-    console.log(username);
-    console.log(`SELECT "isAdmin" FROM public.user WHERE username='${username}';`);
-    executeQuery(`SELECT "isAdmin" FROM public.user WHERE username='${username}';`, undefined, (userRows: any[]) => {
-        // fix any!!!!!!!!!!!!!!!!!
-        if (userRows[0].isAdmin)
-            res.sendStatus(401);
-        else {
-            createProject(req.body);
-            res.status(200).send("OK");
-        }
-    })
+    // executeQuery(`SELECT "isAdmin" FROM public.user WHERE username='${username}';`, undefined, (userRows: any[]) => {
+    //     // fix any!!!!!!!!!!!!!!!!!
+    //     console.log(userRows);
+    //     console.log(userRows[0].isAdmin)
+    //     if (userRows[0].isAdmin) {
+    //         createProject(req.body);
+    //         res.status(200).send("OK");
+    //     } else
+    //         res.sendStatus(401);
+    // })
+    if (req.isAdmin) {
+        createProject(req.body);
+        res.status(200).send("OK");
+    } else
+        res.sendStatus(401);
     // BUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG
-    // authentication makes the server crash!!!!!!!!!!!!!!!!!!!!!!
+    //CLIENT ERROR?!#@1/2e!?3e/r.q<?>W>E,frqw
+
 });
 
 router.post("/create_task", (req, res) => {
+    console.log("reached create task");
     createTask(req.body);
     res.status(200).send("OK");
 });
@@ -152,14 +168,27 @@ router.post("/login", async (req, res) => {
     });
 });
 
-router.post("/test_auth", (req: any, res) => { // fix any!!!!!!
-    console.log("in server /test_auth");
-    console.log(req.username);
-});
-
-router.patch("/:projectId/update_project_title", (req: Request, res: Response) => {
-    executeQuery(`UPDATE public.project SET title='${req.body.title}' WHERE id=${req.params.projectId};`);
-    res.status(200).send("OK");
+router.put("/project/:projectId/update", (req: any, res: Response) => { // fix any!!!
+    if (req.isAdmin) {
+        const reducedBody: any = Object.fromEntries(Object.entries(req.body).filter(([_, val]: any[]) => val && val.length));
+        // fix anys!!!!!!!!!!!!!!!
+        console.log("og:", req.body, "reduced:", reducedBody)
+        Object.keys(reducedBody).forEach((key: string) => {
+            if (key === "team") {
+                executeQuery(`DELETE * FROM public.project_to_user WHERE "projectId"=${req.params.projectId};`);
+                reducedBody.team.forEach((user: {username: string}) => {
+                    executeQuery(`INSERT INTO public.project_to_user("projectId", "userId")
+                        VALUES (${req.params.projectId}, (SELECT id FROM public."user" WHERE username='${user.username}'));`);
+                });
+            }
+            else {
+                console.log(`UPDATE public.project SET ${key}='${reducedBody[key]}' WHERE id=${req.params.projectId};`)
+                executeQuery(`UPDATE public.project SET ${key}='${reducedBody[key]}' WHERE id=${req.params.projectId};`);
+            }
+        });
+        res.status(200).send("OK");
+    } else
+        res.sendStatus(401); // runtime error at the client - see create project's case!!!!!!!!!
 });
 
 const port = process.env.PORT || 5000;

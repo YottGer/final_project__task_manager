@@ -6,7 +6,7 @@ import { useQueryClient, useMutation, useQuery } from "react-query";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
-const UpdateProject: React.FC = (): JSX.Element => {
+const UpdateTaskStatus: React.FC = (): JSX.Element => {
     const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
     const navigate = useNavigate();
@@ -103,4 +103,4 @@ const UpdateProject: React.FC = (): JSX.Element => {
     );
 }
 
-export default UpdateProject;
+export default UpdateTaskStatus;

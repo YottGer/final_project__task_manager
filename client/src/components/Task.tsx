@@ -3,7 +3,7 @@ import { ITask } from "./pages/ProjectPage";
 import { Card, CardActionArea, Typography, Chip, ListItem, ListItemText, ListItemButton } from "@mui/material";
 import { Link } from "react-router-dom";
 
-const Task: React.FC<ITask> = ({ id, projectId, title, description, tags }): JSX.Element => {
+const Task: React.FC<ITask> = ({ id, projectId, title, description, tags, status }): JSX.Element => {
     console.log(tags);
     return (
         // <Card>
@@ -15,7 +15,7 @@ const Task: React.FC<ITask> = ({ id, projectId, title, description, tags }): JSX
         //  </Card>
         <ListItem disablePadding component={Link} to={`/project/${projectId}/task/${id}`} >
             <ListItemButton>
-                 <ListItemText primary={title + ": " + description} />
+                 <ListItemText primary={title + ": " + description} secondary={status} />
                  {tags?.map(tagStr => <Chip color="info" label={tagStr} />)}
             </ListItemButton>
         </ListItem>

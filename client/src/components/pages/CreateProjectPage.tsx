@@ -8,19 +8,20 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const CreateProjectPage: React.FC = (): JSX.Element => {
-    const accessToken = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
-    console.log("create project page token ", accessToken);
+    const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
+    console.log("create project page token ", token);
 
     const navigate = useNavigate();
 
     const {mutate, isLoading, isError, error} = useMutation((data: object) => {
         return axios.post("http://localhost:5000/create_project", data, {
             headers: {
-                Authorization: "Bearer " + accessToken
+                Authorization: "Bearer " + token
             }
         });
     }, {
-        onSuccess: () => {navigate("/")}
+        onSuccess: () => {navigate("/");},
+        onError: () => {alert("error - unauthorized! are you an admin?"); navigate("/");} //ERROR?!@#?1?1/23/1#?
     })
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -36,7 +37,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
         () => {
             return axios.get("http://localhost:5000/users", {
             headers: {
-                Authorization: "Bearer " + accessToken.token
+                Authorization: "Bearer " + token
             }
         }
         );
@@ -78,7 +79,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
                 <FormLabel>Status</FormLabel>
                 <RadioGroup name="status" defaultValue="development">
                     <FormControlLabel value="development" control={<Radio />} label="development" />
-                    <FormControlLabel value="maintenance" control={<Radio />} label="maintenace" />
+                    <FormControlLabel value="maintenance" control={<Radio />} label="maintenance" />
                 </RadioGroup>
                 <Button type="submit">Submit</Button>
             </form>
