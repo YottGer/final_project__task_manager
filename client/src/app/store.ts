@@ -1,5 +1,6 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import accessTokenReducer from "../features/accessToken/accessTokenSlice";
+import isDarkThemeReducer from "../features/isDarkTheme/isDarkThemeSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer } from "redux-persist";
 
@@ -11,7 +12,8 @@ const persistConfig = {
 };
 
 const reducer = combineReducers({
-  accessToken: accessTokenReducer
+  accessToken: accessTokenReducer,
+  isDarkTheme: isDarkThemeReducer
 })
 
 const persistedReducer = persistReducer(persistConfig, reducer);

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { TextField, Autocomplete, Button, FormLabel, CircularProgress, Dialog, RadioGroup, FormControlLabel,
- Radio } from "@mui/material";
-import { useParams } from "react-router-dom";
-import { useMutation, useQueryClient, useQuery } from "react-query";
-import axios from "axios";
+import { TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
+Radio } from "@mui/material";
 import { useSelector } from "react-redux";
+import { useQueryClient, useMutation, useQuery } from "react-query";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
 
-const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Element => {
+const UpdateTask: React.FC = (): JSX.Element => {
     const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     
     const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
@@ -14,14 +14,20 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
     const [tags, setTags] = useState(Array<string>());
     // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
 
-    const projectId = parseInt(useParams().projectId ?? '-1'); // id can't be negative
+    const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
+    const taskId = parseInt(useParams().task_id ?? '-1'); // id can't be negative
+    console.log("projectId:" + projectId, "taskId: " + taskId);
 
     const queryClient = useQueryClient();
     const {mutate, isLoading, isError, error} = useMutation((data: object) => {
-        return axios.post("http://localhost:5000/create_task", data);
+        return axios.put(`http://localhost:5000/task/${taskId}/update`, data, {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        });
     }, {
         onSuccess: () => {
-            queryClient.invalidateQueries('fetch-tasks' + projectId);
+            queryClient.invalidateQueries('fetch-details' + taskId);
             setOpen(false);
         }
     })
@@ -34,11 +40,23 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
         mutate(data);
     }
 
+    const {data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useQuery(
+        "fetch-team-for-update" + taskId,
+        () => {
+            return axios.get(`http://localhost:5000/project/${projectId}/team`, {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        }
+        );
+        }
+    );
+
     const [open, setOpen] = useState(false);
 
     return (
         <>
-            <Button onClick={() => setOpen(true)} variant="contained">Create a new task</Button>
+            <Button onClick={() => setOpen(true)} variant="contained">Update task</Button>
             <Dialog open={open} onClose={() => setOpen(false)}>
                 <>
                     <form onSubmit={handleSubmit} style={{
@@ -51,9 +69,22 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
                             onChange={(event, value) => setLeaders(value)}
                             multiple
                             limitTags={3}
-                            options={team}
+                            options={users ? users.data : []}
+                            loading={usersLoading}
                             getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
-                            renderInput={(params) => <TextField {...params} placeholder="leaders" />}
+                            renderInput={(params) => 
+                                <TextField
+                                    {...params}
+                                    placeholder="leaders"
+                                    InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <>
+                                        {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                        </>
+                                    ),
+                                    }} />}
                             sx={{ width: '500px' }}
                         />
                         <Autocomplete
@@ -69,7 +100,9 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
                         <FormLabel>Start date</FormLabel>
                         <input type="date" name="startDate"/>
                         <FormLabel>End date</FormLabel>
-                        <input type="date" name="endDate"/>            
+                        <input type="date" name="endDate"/>
+                        {/* IS THERE A PROBLEM WITH THE DATES!?@E>!?>E#?.err
+                        seems that the updated date is a day before what we want */}            
                         <Autocomplete
                             onChange={(event, value) => setTags(value)}
                             multiple
@@ -104,9 +137,4 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
     );
 }
 
-export default CreateTask;
-
-//TODO: Validation (In addition to server-side validation?)
-// TODO: Handle code duplivation (see createProject...)
-//TODO: Prevent form completion suggestions
-//TODO: reset form after succsess (onSuccess)
+export default UpdateTask;

@@ -52,20 +52,36 @@ const ProjectPage: React.FC = (): JSX.Element => {
                 </List>
             </Typography> {/*fix any!!!*/}
             <Typography variant="h6">Tasks:</Typography>
-            <List>
-                {data?.data.map((task: ITask) =>
-                <Task
-                    key={"task" + task.id}
-                    id={task.id}
-                    projectId={task.projectId}
-                    title={task.title}
-                    description={task.description}
-                    startDate={task.startDate}
-                    endDate={task.endDate}
-                    tags={task.tags}
-                    status={task.status}
-                />)}
-            </List>
+            <div style={{display: "flex", flexDirection: "row"}}>
+                <List>
+                    {data?.data.filter((task: ITask) => task.status !== "done" ).map((task: ITask) =>
+                    <Task
+                        key={"task" + task.id}
+                        id={task.id}
+                        projectId={task.projectId}
+                        title={task.title}
+                        description={task.description}
+                        startDate={task.startDate}
+                        endDate={task.endDate}
+                        tags={task.tags}
+                        status={task.status}
+                    />)}
+                </List>
+                <List>
+                    {data?.data.filter((task: ITask) => task.status === "done" ).map((task: ITask) =>
+                    <Task
+                        key={"task" + task.id}
+                        id={task.id}
+                        projectId={task.projectId}
+                        title={task.title}
+                        description={task.description}
+                        startDate={task.startDate}
+                        endDate={task.endDate}
+                        tags={task.tags}
+                        status={task.status}
+                    />)}
+                </List>
+            </div>
             {(isLoading || isFetching) && 
                 <>
                     Fetching project details
@@ -74,7 +90,7 @@ const ProjectPage: React.FC = (): JSX.Element => {
                 </>
             }
             {isError && error /* add a nice error page */}
-            <CreateTask />
+            <CreateTask team={detailsData?.data.team} />
             <UpdateProject />
         </>
     );

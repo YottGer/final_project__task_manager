@@ -42,7 +42,8 @@ const createTask = ({ projectId, title, description, leaders, links, startDate, 
     }], '${status}') RETURNING id;`, undefined, (taskIdRows: any[]) => { // fix any!!!!!!!!!!!1
         leaders.forEach((leader) => {
             executeQuery(`INSERT INTO public.task_to_user("taskId", "userId") VALUES (${taskIdRows[0].id},
-            (SELECT id FROM public.user WHERE username='${leader.username}'));`)});
+            (SELECT id FROM public.user WHERE username='${leader.username}'));`)
+        });
     });
 }
 

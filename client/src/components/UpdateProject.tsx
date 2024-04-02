@@ -38,7 +38,7 @@ const UpdateProject: React.FC = (): JSX.Element => {
     const [team, setTeam] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!
 
     const {data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useQuery(
-        "fetch-users-for-update",
+        "fetch-users-for-update" + projectId,
         () => {
             return axios.get("http://localhost:5000/users", {
             headers: {

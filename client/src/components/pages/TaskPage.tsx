@@ -5,7 +5,7 @@ import { Typography, Chip, List, ListItem, CircularProgress } from "@mui/materia
 import { useParams } from "react-router-dom";
 import CreateComment from "../CreateComment";
 import Comment from "../Comment";
-import UpdateTaskStatus from "../UpdateTaskStatus";
+import UpdateTask from "../UpdateTask";
 
 export interface IComment {
     id: number,
@@ -61,6 +61,9 @@ const TaskPage: React.FC = (): JSX.Element => {
                 )}
             </List>
         </Typography>
+        <Typography variant="body2">
+            status: {detailsData?.data.status}
+        </Typography>
         {/* fix any!!!!!!!!!!!!!!!!!!! */}
         <Typography variant="h4">Comments:</Typography>
         {(commentsIsLoading || commentsIsFetching) && 
@@ -76,7 +79,7 @@ const TaskPage: React.FC = (): JSX.Element => {
             <Comment {...comment} />)}
         </List>
         <CreateComment />
-        <UpdateTaskStatus />
+        <UpdateTask />
         </>
     );
 }

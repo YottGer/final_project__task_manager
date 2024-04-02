@@ -1,5 +1,5 @@
 import express, { json, Request, Response } from "express";
-import { sign, verify } from "jsonwebtoken";
+import { JwtPayload, sign, verify, VerifyCallback } from "jsonwebtoken";
 const cors = require("cors"); // import doesn't work
 
 import { executeQuery, createProject, createTask, createComment } from "./dbFunctions";
@@ -13,18 +13,30 @@ const autherizeToken = (req: Request, res: Response, next: Function) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(' ')[1]; // (Authorization: )Bearer <token>
     if (!token) return res.sendStatus(401);
-    verify(token, secret, (err, user: any) => { // fix any!!!!
+    verify(token, secret, (err, user) => {
         console.log(err)
         // if (err) return res.status(403).send("authorization failed. try again..."); // authorization failed
         // Why doesn't the above line work?!?!?!!?!??!!?!?!?
-        Object.assign(req, {username: user?.name});
-        executeQuery(`SELECT "isAdmin" FROM public.user WHERE username='${user?.name}';`, undefined, (userRows: any[]) => {
+        const username = user.name;
+        Object.assign(req, {username: username});
+        executeQuery(`SELECT "isAdmin" FROM public.user WHERE username='${username}';`, undefined, (userRows: any[]) => {
             // fix any!!!!!!!!!!!!!!!!!
             Object.assign(req, {isAdmin: userRows[0].isAdmin});
             next();
         });
 
     })
+}
+
+const isLeader = (req: any, res: Response, next: Function) => { // fix any!!!!!!!!!!!1
+    const username = req.username;
+    const taskId = req.params.taskId;
+    executeQuery(`SELECT * FROM public.task_to_user 
+     WHERE "userId"=(SELECT id FROM public.user WHERE username='${username}')
+      AND "taskId"=${taskId};`, undefined, (resultRows: any) => { // fix any!!!!!!!!!!!!!!!!!!!!!!
+        Object.assign(req, {isLeader: resultRows.length > 0});
+        next();
+      });
 }
 
 const router = express();
@@ -40,6 +52,7 @@ router.use("/create_project", autherizeToken);
 // router.use("/create_task", autherizeToken);
 // router.use("/create_comment", autherizeToken);
 router.use("/project/:projectId/update", autherizeToken);
+// router.use("/task/:taskId/update", autherizeToken); // leave that here?!!?!?
 
 // routes
 router.get("/projects", (req: any, res) => { // fix any!!!!!!!!!!!!!
@@ -141,7 +154,6 @@ router.post("/create_project", (req: any, res) => { // fix any!!!!
 });
 
 router.post("/create_task", (req, res) => {
-    console.log("reached create task");
     createTask(req.body);
     res.status(200).send("OK");
 });
@@ -159,8 +171,7 @@ router.post("/login", async (req, res) => {
     undefined,
     (queryResult: string) => {
         if (queryResult.length > 0) {
-            const user = {name: username};
-            const accessToken = sign(user, secret);
+            const accessToken = sign(username, secret);
             res.send({ accessToken, username });
             return;
         }
@@ -172,7 +183,6 @@ router.put("/project/:projectId/update", (req: any, res: Response) => { // fix a
     if (req.isAdmin) {
         const reducedBody: any = Object.fromEntries(Object.entries(req.body).filter(([_, val]: any[]) => val && val.length));
         // fix anys!!!!!!!!!!!!!!!
-        console.log("og:", req.body, "reduced:", reducedBody)
         Object.keys(reducedBody).forEach((key: string) => {
             if (key === "team") {
                 executeQuery(`DELETE * FROM public.project_to_user WHERE "projectId"=${req.params.projectId};`);
@@ -189,6 +199,50 @@ router.put("/project/:projectId/update", (req: any, res: Response) => { // fix a
         res.status(200).send("OK");
     } else
         res.sendStatus(401); // runtime error at the client - see create project's case!!!!!!!!!
+});
+
+router.put("/task/:taskId/update", autherizeToken, isLeader, (req: any, res) => { // fix any!!!!!!!!!!
+    console.log(req.isAdmin, req.username, "isLeader: " + req.isLeader);
+    console.log("body", req.body);
+    const reducedBody: any = 
+     req.isAdmin ? 
+        Object.fromEntries(Object.entries(req.body).filter(([_, val]: any[]) => val && val.length))
+     :
+        (req.isLeader ?
+            Object.fromEntries(Object.entries(req.body).filter(([key, val]: any[]) =>
+             val && val.length && ["title", "description", "status"].includes(key)))
+        :
+            {}
+        );
+    // fix anys!!!!!!!!!!!!!!!
+    // notify client about his permissions!!!!!!!!!!!!!
+    console.log("reduced", reducedBody);
+    Object.keys(reducedBody).forEach((key: string) => {
+        console.log("in foreach loop");
+        if (key === "leaders") {
+            console.log(`DELETE FROM public.task_to_user WHERE "taskId"=${req.params.taskId};`);
+            executeQuery(`DELETE FROM public.task_to_user WHERE "taskId"=${req.params.taskId};`);
+            reducedBody.leaders.forEach((user: {username: string}) => {
+                console.log(`INSERT INTO public.task_to_user("taskId", "userId")
+                VALUES (${req.params.taskId}, (SELECT id FROM public."user" WHERE username='${user.username}'));`);
+                executeQuery(`INSERT INTO public.task_to_user("taskId", "userId")
+                    VALUES (${req.params.taskId}, (SELECT id FROM public."user" WHERE username='${user.username}'));`);
+            });
+        }
+        else if (key === "tags" || key === "links") {
+            console.log(`UPDATE public.task SET ${key}=Array[${
+                reducedBody[key].map((str: string) => "'" + str + "'")
+            }] WHERE id=${req.params.taskId};`);
+            executeQuery(`UPDATE public.task SET ${key}=Array[${
+                reducedBody[key].map((str: string) => "'" + str + "'")
+            }] WHERE id=${req.params.taskId};`);
+        }
+        else {
+            console.log(`UPDATE public.task SET "${key}"='${reducedBody[key]}' WHERE id=${req.params.taskId};`);
+            executeQuery(`UPDATE public.task SET "${key}"='${reducedBody[key]}' WHERE id=${req.params.taskId};`);
+        }
+    });
+    res.status(200).send("OK");
 });
 
 const port = process.env.PORT || 5000;
