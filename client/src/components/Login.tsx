@@ -12,6 +12,7 @@ const Login: React.FC = (): JSX.Element => {
     const dispatch = useDispatch();
 
     const { mutate, isLoading, isError, error } = useMutation((data: object) => {
+        console.log("sending data to login route");
         return axios.post("http://localhost:5000/login", data);
     }, {
         onSuccess: (data) => {
@@ -35,7 +36,7 @@ const Login: React.FC = (): JSX.Element => {
     }
 
     const username = useSelector((state: any) => state.username); // fix 'any'!!!!!!!!!!!!!!!
-    const paperStyle = {padding: 20, height: '37.5vh', width: 280, margin: "20px auto"};
+    const paperStyle = {padding: 20, height: '42.5vh', width: 280, margin: "20px auto"};
 
     return(
         <>

@@ -44,7 +44,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
         }
     );
 
-    const [team, setTeam] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!
+    const [team, setTeam] = useState(Array<string>());
 
     return (
         <>
@@ -55,7 +55,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
                 <TextField label="Project title" name="title" type="text" margin="normal"/>
                 <TextField label="Project description" name="description" type="text"  margin="normal"/>
                 <Autocomplete
-                    onChange={(event, value) => setTeam(value)}
+                    onChange={(event, value) => setTeam(value.map((usernameObj) => usernameObj.username))}
                     multiple
                     limitTags={3}
                     options={users ? users.data : []}

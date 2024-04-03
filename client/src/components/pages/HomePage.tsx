@@ -1,13 +1,12 @@
 import React from "react";
-import { useQuery } from "react-query";
-import axios from "axios";
-import Project from "../Project";
-import Login from "../Login";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername } from "../../features/accessToken/accessTokenSlice";
-import { List, Button, CircularProgress, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
+import { useQuery } from "react-query";
+import axios from "axios";
+import { List, Button, CircularProgress, Typography } from "@mui/material";
+import Project from "../Project";
+import Login from "../Login";
 
 export interface IProject {
     id: number
@@ -16,19 +15,24 @@ export interface IProject {
     status: string
 }
 
+interface IAccessTokenState {
+    accessToken: {
+        token: string,
+        username: string
+    }
+}
+
 const HomePage: React.FC = (): JSX.Element => {
-    const { token, username } = useSelector((state: any) => state.accessToken); // any is required (?)
+    const { token, username } = useSelector((state: IAccessTokenState) => state.accessToken);
     const isLoggedIn = token !== "";
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    console.log(isLoggedIn, token);
-
     const logout = () => {
         dispatch(setToken(""));
         dispatch(setUsername(""));
-        navigate("/");
+        navigate("/"); // refresh page
     }
 
     const { data, isLoading, isFetching, isError, error } = useQuery("fetch-projects", () => {
@@ -41,7 +45,7 @@ const HomePage: React.FC = (): JSX.Element => {
 
     return (
         <>
-            {!isLoggedIn && <Login />}
+            {isLoggedIn || <Login />}
             {
             isLoggedIn && 
             <>
@@ -49,13 +53,13 @@ const HomePage: React.FC = (): JSX.Element => {
                 <Button onClick={logout}>Logout</Button>
                 <Typography variant="h5">Your projects:</Typography>    
                 <List>
-                {data?.data.map((project: IProject) =>
+                {data?.data.map(({ id, title, description, status }: IProject) =>
                 <Project
-                    key={"project" + project.id}
-                    id={project.id}
-                    title={project.title}
-                    description={project.description}
-                    status={project.status}
+                    key={"project" + id}
+                    id={id}
+                    title={title}
+                    description={description}
+                    status={status}
                 />)}
                 </List>
                 {(isLoading || isFetching) && 

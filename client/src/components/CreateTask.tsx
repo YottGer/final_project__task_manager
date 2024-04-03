@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Element => {
     const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     
-    const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
+    const [leaders, setLeaders] = useState(Array<String>());
     const [links, setLinks] = useState(Array<string>());
     const [tags, setTags] = useState(Array<string>());
     // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
@@ -48,7 +48,7 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
                         <TextField label="Task title" name="title" type="text" margin="normal"/>
                         <TextField label="Task description" name="description" type="text"  margin="normal"/>
                         <Autocomplete
-                            onChange={(event, value) => setLeaders(value)}
+                            onChange={(event, value) => setLeaders(value.map(usernameObj => usernameObj.username))}
                             multiple
                             limitTags={3}
                             options={team}

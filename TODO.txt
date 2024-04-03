@@ -13,6 +13,7 @@ Client:
 - use global state to access team (fetched by ProjectPage) from UpdateTask (instead of fetching again in UpdateTask)
 - in UpdateTask I don't throw an error when an unauthorized user tries to update. I just don't update. fix that -
   keep consistency and notify the user for his permissions.
+- rename client directory to front-end directory
 
 
 Server:
@@ -20,6 +21,7 @@ Server:
 - refresh token
 - tags and links are db arrays, so they throw an error when empty - fix that
 - in queries - change DELETE * to DELETE
+- rename server directory to backend directory
 
 DB:
 - create tagId <-> tagString table and save tagIds in the task record instead of text[]
@@ -27,6 +29,7 @@ DB:
 - make sure no repeated strings are stored in the db. for example - change the "status" column of a project from text
   to integer, refrencing the id of a row in a table with two columns - statusId, statusText.
 - there seems to be a problem with dates - updated dates are 1 day before what is wanted.
+- move DB files to a DB directory
 
 Other:
 - Manage packages
