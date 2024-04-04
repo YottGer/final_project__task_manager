@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import CreateComment from "../CreateComment";
 import Comment from "../Comment";
 import UpdateTask from "../UpdateTask";
+import useFetch from "../../hooks/useFetch";
 
 export interface IComment {
     id: number,
@@ -15,19 +16,36 @@ export interface IComment {
 }
 
 const TaskPage: React.FC = (): JSX.Element => {
+    const projectId = useParams().project_id;
     const taskId = useParams().task_id;
 
-    const { data: detailsData, isLoading: detailsLoading, isFetching: detailsFetching,
-         isError: detailsIsError, error: detailsError } =
-     useQuery("fetch-details" + taskId, () => {
-        return axios.get(`http://localhost:5000/task/${taskId}`);
-    })
+    const {
+        data: detailsData, 
+        isLoading: detailsLoading, 
+        isFetching: detailsFetching,
+        isError: detailsIsError, 
+        error: detailsError
+    } = useFetch(
+        `project ${projectId} task ${taskId} fetch details`,
+        `http://localhost:5000/project/${projectId}/task/${taskId}`
+    );
+    // useQuery("fetch-details" + taskId, () => {
+    //     return axios.get(`http://localhost:5000/task/${taskId}`);
+    // })
 
-    const { data: commentsData, isLoading: commentsIsLoading, isFetching: commentsIsFetching,
-         isError: commentsIsError, error: commentsError } =
-     useQuery("fetch-comments" + taskId, () => {
-        return axios.get(`http://localhost:5000/task/${taskId}/comments`);
-    })
+    const {
+        data: commentsData, 
+        isLoading: commentsIsLoading, 
+        isFetching: commentsIsFetching,
+        isError: commentsIsError, 
+        error: commentsError 
+    } = useFetch(
+        `project ${projectId} task ${taskId} fetch comments`,
+        `http://localhost:5000/project/${projectId}/task/${taskId}/comments`
+    );
+    // useQuery("fetch-comments" + taskId, () => {
+    //     return axios.get(`http://localhost:5000/task/${taskId}/comments`);
+    // })
 
     return (
         <>
@@ -48,16 +66,16 @@ const TaskPage: React.FC = (): JSX.Element => {
         <Typography variant="body2">
             links:
             <List>
-                {detailsData?.data.links?.map((linkStr: string) =>
-                 <ListItem><a href={linkStr}>{linkStr}</a></ListItem>
+                {detailsData?.data.links?.map((linkStr: string, index: number) =>
+                 <ListItem key={`project ${projectId} task ${taskId} link ${index}`}><a href={linkStr}>{linkStr}</a></ListItem>
                 )}
             </List>
         </Typography>
         <Typography variant="body2">
             leaders:
             <List>
-                {detailsData?.data.leaders?.map((leader: any) => 
-                 <ListItem>{leader.username}</ListItem>
+                {detailsData?.data.leaders?.map((username: string, index: number) => 
+                 <ListItem key={`project ${projectId} task ${taskId} leader ${index}`}>{username}</ListItem>
                 )}
             </List>
         </Typography>

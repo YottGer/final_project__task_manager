@@ -1,15 +1,22 @@
 import express, { json, Request, Response } from "express";
 import { JwtPayload, sign, verify, VerifyCallback } from "jsonwebtoken";
-const cors = require("cors"); // import doesn't work
-import { checkUsernamePassword, checkIsAdmin, checkIsLeaderOfTask, getProjects, createProject,
-getUsers, getTasksForProject } from "./dbFunctions";
+const cors = require("cors"); // import doesn't work, so I have to use require()
+import dbAccess from "./dbAccess";
 // , createProject, createTask, createComment } from "./dbFunctions";
-import { IProject, ITask, IUser } from "./interfaces";
+import { IProject, IExtendProject, ITask, IUser, IExtendTask, IExtendComment } from "./interfaces";
 
 const secret = "b6506e25c723b2327383c15ed6342a320857cf16035460504f09d1ee92f392846ce9ffecd8c5215f19593f452f4cfaa6d6ed6bd97a700ba7f3ba4dcfa5ab6444";
 const refreshSecret = "411c3b1fb19ca25127a3360a266feaa84312f05ddb1627e82aa27e3b7a7ddf7e8872b0f95a2fe7877bc753570af30d324f3410bbd64bd05f7771ae1316db32ab";
 //TODO: hide the secretes in another file
 //TODO: use refresh token
+
+const db = new dbAccess();
+
+const wrapperMiddleware = (req: Request, res: Response, next: Function) => {
+    if (req.path !== "/login")
+        return autherizeToken(req, res, next);
+    next();
+}
 
 const autherizeToken = (req: Request, res: Response, next: Function) => {
     const authHeader = req.headers["authorization"];
@@ -22,25 +29,18 @@ const autherizeToken = (req: Request, res: Response, next: Function) => {
         */
         if (err) return res.status(403).send("Access token verification failed: " + err.message);
         Object.assign(req, { username: username }); // That is how I pass data to the next callback
-        checkIsAdmin(username, (isAdmin: boolean) => {
+        db.checkIsAdmin(username, (isAdmin: boolean) => {
             Object.assign(req, { isAdmin: isAdmin } );
             next();
         });
     })
 }
 
-const autherizeTokenIfNotLoginMiddleware = (req: Request, res: Response, next: Function) => {
-    if (req.path !== "/login")
-        return autherizeToken(req, res, next);
-    next();
-
-}
-
 const isLeaderOfTaskMiddleware = (req: any, res: Response, next: Function) => { 
     // Couldn't understand how to reduce the type of req
     const username = req.username;
     const taskId = req.params.taskId;
-    checkIsLeaderOfTask(username, taskId, (isLeader: boolean) => {
+    db.checkIsLeaderOfTask(username, taskId, (isLeader: boolean) => {
         Object.assign(req, { isLeader: isLeader });
         next();
     });
@@ -51,7 +51,7 @@ const router = express();
 // middlewares
 router.use(json());
 router.use(cors());
-router.use(autherizeTokenIfNotLoginMiddleware);
+router.use(wrapperMiddleware);
 // //router.use("/project/:projectId/tasks", autherizeToken);
 // // router.use("/task/:taskId", autherizeToken);
 // // router.use("/task/:taskId/comments", autherizeToken);
@@ -64,65 +64,32 @@ router.use(autherizeTokenIfNotLoginMiddleware);
 // routes
 router.get("/projects", (req: any, res) => { // See comment in isLeaderOfTaskMiddleware
     const { username, isAdmin } = req;
-    getProjects(username, isAdmin, (projectRows: IProject[]) => res.status(200).send(projectRows));
+    db.getProjects(username, isAdmin, (projectRows: IProject[]) => res.status(200).send(projectRows));
 })
 
 router.get("/project/:projectId", (req: Request, res: Response) => {
-    // executeQuery(`SELECT * FROM public.project WHERE id=${req.params.projectId};`, undefined, (projectRows: any[]) => {
-    //     // fix any!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //     executeQuery(`SELECT "userId" FROM public.project_to_user WHERE "projectId"=${req.params.projectId};`,
-    //     undefined, (userRows: any[]) => { // fix any!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //         if (userRows.map((userIdRow: any) => userIdRow.userId).filter(item => item !== null).length === 0) {
-    //             // fix that!!!!!!!!!!!!!!!!!! yakkkkkkkkkkkkkkkkkkkkkkkk
-    //             res.send({ ...projectRows[0], team: [] });
-    //         }
-
-    //         else {
-    //             executeQuery(`SELECT username FROM public.user WHERE id IN (${
-    //                 (userRows.map((userIdRow: any) => userIdRow.userId).filter(item => item !== null).toString()) // fix any!!!!!!!!!!
-    //             });`, undefined, (usernameRows: any[]) => { // fix any!!!!!!!!!!!!!!!
-    //                 // fix that!!!!!!!!!!!!!!!!!! yakkkkkkkkkkkkkkkkkkkkkkkk
-    //                 res.send({ ...projectRows[0], team: usernameRows })
-    //             }) 
-    //         }
-                
-    //     })
-    // })
+    const projectId = req.params.projectId;
+    db.getProjectWithTeam(projectId, (project: IExtendProject) => res.status(200).send(project));
 });
 
 router.get("/project/:projectId/tasks", (req, res) => {
-    getTasksForProject(req.params.projectId, (taskRows: ITask[]) => res.status(200).send(taskRows));
-}); // DEBUUUUUUUUUUUUUUUUUUUUUUG!!!
+    db.getTasksForProject(req.params.projectId, (taskRows: ITask[]) => res.status(200).send(taskRows));
+});
 
-// router.get("/task/:taskId", (req, res) => {
-//     executeQuery(`SELECT * FROM public.task WHERE id=${req.params.taskId};`, undefined, (taskRows: any[]) => {
-//         // fix any!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//         executeQuery(`SELECT "userId" FROM public.task_to_user WHERE "taskId"=${req.params.taskId};`,
-//         undefined, (userRows: any[]) => { // fix any!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//             if (userRows.map((userIdRow: any) => userIdRow.userId).filter(item => item !== null).length === 0) {
-//                 // fix that!!!!!!!!!!!!!!!!!! yakkkkkkkkkkkkkkkkkkkkkkkk
-//                 res.send({ ...taskRows[0], leaders: [] });
-//             }
+router.get("/project/:projectId/task/:taskId", (req, res) => {
+    const taskId = req.params.taskId;
+    db.getTaskWithLeaders(taskId, (task: IExtendTask) => res.status(200).send(task));
+});
 
-//             else {
-//                 executeQuery(`SELECT username FROM public.user WHERE id IN (${
-//                     (userRows.map((userIdRow: any) => userIdRow.userId).filter(item => item !== null).toString()) // fix any!!!!!!!!!!
-//                 });`, undefined, (usernameRows: any[]) => { // fix any!!!!!!!!!!!!!!!
-//                     // fix that!!!!!!!!!!!!!!!!!! yakkkkkkkkkkkkkkkkkkkkkkkk
-//                     res.send({ ...taskRows[0], leaders: usernameRows })
-//                 }) 
-//             }
-                
-//         })
-//     })
-// });
+router.get("/project/:projectId/task/:taskId/comments", (req, res) => {
+    // executeQuery(`SELECT * FROM public.comment WHERE "taskId"=${req.params.taskId};`, res);
+    const taskId = req.params.taskId;
+    db.getCommentsForTask(taskId, (comments: IExtendComment[]) => res.status(200).send(comments)); //DEBUG!!!!!!!
 
-// router.get("/task/:taskId/comments", (req, res) => {
-//     executeQuery(`SELECT * FROM public.comment WHERE "taskId"=${req.params.taskId};`, res);
-// });
+});
 
 router.get("/users", (req, res) => {
-    getUsers((userRows: IUser[]) => res.status(200).send(userRows));
+    db.getUsers((userRows: IUser[]) => res.status(200).send(userRows));
 });
 
 // router.get("/project/:projectId/team", (req, res) => {
@@ -134,7 +101,7 @@ router.get("/users", (req, res) => {
 
 router.post("/login", (req: Request, res: Response) => {
     const { username, password } = req.body;
-    checkUsernamePassword(username, password, (isUsernamePassword: boolean) => {
+    db.checkUsernamePassword(username, password, (isUsernamePassword: boolean) => {
         if (isUsernamePassword)
             return res.status(200).send({ accessToken: sign(username, secret), username });
         return res.status(401).send("Login failure");
@@ -144,19 +111,20 @@ router.post("/login", (req: Request, res: Response) => {
 router.post("/create_project", (req: any, res: Response) => { // See comment in isLeaderOfTaskMiddleware
     const isAdmin = req.isAdmin;
     if (isAdmin)
-        createProject(req.body, () => res.sendStatus(200));
+    db.createProject(req.body, () => res.sendStatus(200));
     else
         res.status(401).send("Must be admin to create project!");
 });
 
 router.post("/create_task", (req, res) => {
-    createTask(req.body, () => res.sendStatus(200));
+    db.createTask(req.body, () => res.sendStatus(200));
 });
 
-// router.post("/create_comment", (req, res) => {
-//     createComment(req.body);
-//     res.status(200).send("OK");
-// });
+router.post("/create_comment", (req, res) => {
+    // createComment(req.body);
+    // res.status(200).send("OK");
+    db.createComment(req.body, () => res.sendStatus(200));
+});
 
 // router.put("/project/:projectId/update", (req: any, res: Response) => { // fix any!!!
 //     if (req.isAdmin) {

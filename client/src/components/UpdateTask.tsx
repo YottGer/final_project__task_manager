@@ -27,7 +27,7 @@ const UpdateTask: React.FC = (): JSX.Element => {
         });
     }, {
         onSuccess: () => {
-            queryClient.invalidateQueries('fetch-details' + taskId);
+            queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch details`);
             setOpen(false);
         }
     })

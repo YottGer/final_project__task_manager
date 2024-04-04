@@ -14,7 +14,6 @@ interface IProject {
 
 interface IExtendProject extends IProject {
     team: string[],
-    tasks: ITask[]
 }
 
 interface ITask {
@@ -37,4 +36,14 @@ interface ITaskToUser {
     userId: number
 }
 
-export { IUser, IProject, IExtendProject, ITask, IExtendTask, ITaskToUser };
+interface IComment {
+    taskId: number | string,
+    title: string,
+    content: string
+}
+
+interface IExtendComment extends IComment {
+    id: number,
+}
+
+export { IUser, IProject, IExtendProject, ITask, IExtendTask, ITaskToUser, IComment, IExtendComment };

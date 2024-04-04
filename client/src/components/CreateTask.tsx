@@ -5,8 +5,9 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "react-query";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import useMutate from "../hooks/useMutate";
 
-const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Element => {
+const CreateTask: React.FC<{team: string[]}> = ({ team }): JSX.Element => {
     const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     
     const [leaders, setLeaders] = useState(Array<String>());
@@ -14,17 +15,15 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
     const [tags, setTags] = useState(Array<string>());
     // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
 
-    const projectId = parseInt(useParams().projectId ?? '-1'); // id can't be negative
+    const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
 
     const queryClient = useQueryClient();
-    const {mutate, isLoading, isError, error} = useMutation((data: object) => {
-        return axios.post("http://localhost:5000/create_task", data);
-    }, {
+    const {mutate, isLoading, isError, error} = useMutate(axios.post, "http://localhost:5000/create_task", {
         onSuccess: () => {
-            queryClient.invalidateQueries('fetch-tasks' + projectId);
+            queryClient.invalidateQueries("fetchTasksForProject" + projectId);
             setOpen(false);
         }
-    })
+    });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -48,11 +47,10 @@ const CreateTask: React.FC<{team: {username: string}[]}> = ({ team }): JSX.Eleme
                         <TextField label="Task title" name="title" type="text" margin="normal"/>
                         <TextField label="Task description" name="description" type="text"  margin="normal"/>
                         <Autocomplete
-                            onChange={(event, value) => setLeaders(value.map(usernameObj => usernameObj.username))}
+                            onChange={(event, value) => setLeaders(value)}
                             multiple
                             limitTags={3}
                             options={team}
-                            getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
                             renderInput={(params) => <TextField {...params} placeholder="leaders" />}
                             sx={{ width: '500px' }}
                         />

@@ -30,6 +30,7 @@ DB:
   to integer, refrencing the id of a row in a table with two columns - statusId, statusText.
 - there seems to be a problem with dates - updated dates are 1 day before what is wanted.
 - move DB files to a DB directory
+- where do I put dbClient.end() ?!?!?!?!
 
 Other:
 - Manage packages
@@ -49,4 +50,5 @@ Take a look at the logic that dispatched this action:  Object
 (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)
 
 - how do I use redux if the dark-mode switch is in App component
+- move interfaces to whole app level and import in db/server/client
 

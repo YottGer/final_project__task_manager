@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import CreateTask from "../CreateTask";
 import { useQuery } from "react-query";
 import axios from "axios";
@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import Task from "../Task";
 import UpdateProject from "../UpdateProject";
 import { Typography, List, ListItem, CircularProgress } from "@mui/material";
+import useFetch from "../../hooks/useFetch";
 
 export interface ITask {
     id: number,
@@ -21,14 +22,21 @@ export interface ITask {
 const ProjectPage: React.FC = (): JSX.Element => {
     const projectId = useParams().project_id;
 
-    const { data: detailsData, isLoading: detailsLoading, isFetching: detailsFetching, isError: detailsIsError, error: detailsError } =
-     useQuery("fetch-details" + projectId, () => {
-        return axios.get(`http://localhost:5000/project/${projectId}`);
-    })
+    const { 
+        data: detailsData,
+        isLoading: detailsLoading, 
+        isFetching: detailsFetching, 
+        isError: detailsIsError, 
+        error: detailsError
+    } = useFetch("fetchProjectDetails" + projectId, `http://localhost:5000/project/${projectId}`);
 
-    const { data, isLoading, isFetching, isError, error } = useQuery("fetch-tasks" + projectId, () => {
-        return axios.get(`http://localhost:5000/project/${projectId}/tasks`);
-    })
+    const {
+        data: tasksData, 
+        isLoading: tasksLoading, 
+        isFetching: tasksFetching, 
+        isError: tasksIsError, 
+        error: tasksError 
+    } = useFetch("fetchTasksForProject" + projectId, `http://localhost:5000/project/${projectId}/tasks`);
 
     return (
         <>
@@ -46,17 +54,17 @@ const ProjectPage: React.FC = (): JSX.Element => {
             <Typography variant="body1">
                 team: 
                 <List>
-                    {detailsData?.data.team.map((teamMember: any) =>
-                    <ListItem>{teamMember.username}</ListItem>
+                    {detailsData?.data.team.map((username: string, index: number) =>
+                    <ListItem key={`project ${projectId} member ${index}`}>{username}</ListItem>
                     )}
                 </List>
-            </Typography> {/*fix any!!!*/}
+            </Typography>
             <Typography variant="h6">Tasks:</Typography>
             <div style={{display: "flex", flexDirection: "row"}}>
                 <List>
-                    {data?.data.filter((task: ITask) => task.status !== "done" ).map((task: ITask) =>
+                    {tasksData?.data.filter((task: ITask) => task.status !== "done" ).map((task: ITask) =>
                     <Task
-                        key={"task" + task.id}
+                        key={`project ${projectId} task ${task.id}`}
                         id={task.id}
                         projectId={task.projectId}
                         title={task.title}
@@ -68,9 +76,9 @@ const ProjectPage: React.FC = (): JSX.Element => {
                     />)}
                 </List>
                 <List>
-                    {data?.data.filter((task: ITask) => task.status === "done" ).map((task: ITask) =>
+                    {tasksData?.data.filter((task: ITask) => task.status === "done" ).map((task: ITask) =>
                     <Task
-                        key={"task" + task.id}
+                        key={`project ${projectId} task ${task.id}`}
                         id={task.id}
                         projectId={task.projectId}
                         title={task.title}
@@ -82,14 +90,14 @@ const ProjectPage: React.FC = (): JSX.Element => {
                     />)}
                 </List>
             </div>
-            {(isLoading || isFetching) && 
+            {(tasksLoading || tasksFetching) && 
                 <>
                     Fetching project details
                     <br />
                     <CircularProgress />
                 </>
             }
-            {isError && error /* add a nice error page */}
+            {tasksIsError && tasksError /* add a nice error page */}
             <CreateTask team={detailsData?.data.team} />
             <UpdateProject />
         </>

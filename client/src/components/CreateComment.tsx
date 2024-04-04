@@ -5,14 +5,16 @@ import { useQueryClient, useMutation } from "react-query";
 import axios from "axios";
 
 const CreateComment: React.FC = (): JSX.Element => {
+    const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
     const taskId = parseInt(useParams().task_id ?? '-1'); // id can't be negative
 
     const queryClient = useQueryClient();
+    //change mutation to fit refactoring
     const {mutate, isLoading, isError, error } = useMutation((data: object) => {
         return axios.post("http://localhost:5000/create_comment", data);
     }, {
         onSuccess: () => {
-            queryClient.invalidateQueries('fetch-comments' + taskId);
+            queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch comments`);
             setOpen(false);
         }
     })
