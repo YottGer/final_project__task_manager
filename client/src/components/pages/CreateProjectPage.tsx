@@ -60,7 +60,7 @@ const CreateProjectPage: React.FC = (): JSX.Element => {
                     limitTags={3}
                     options={users ? users.data : []}
                     loading={usersLoading}
-                    getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
+                    getOptionLabel={(option: { username: string }) => option.username}
                     renderInput={(params) => 
                         <TextField
                             {...params}

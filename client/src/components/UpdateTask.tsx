@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import { TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
+import { Typography, TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
 Radio } from "@mui/material";
 import { useSelector } from "react-redux";
 import { useQueryClient, useMutation, useQuery } from "react-query";
+import useMutate from "../hooks/useMutate";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 const UpdateTask: React.FC = (): JSX.Element => {
     const { token } = useSelector((state: any) => state.accessToken); // fix 'any'!!!!!!!!!!!!!!!
     
-    const [leaders, setLeaders] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!11
+    const [leaders, setLeaders] = useState(Array<string>());
     const [links, setLinks] = useState(Array<string>());
     const [tags, setTags] = useState(Array<string>());
     // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
@@ -19,23 +20,31 @@ const UpdateTask: React.FC = (): JSX.Element => {
     console.log("projectId:" + projectId, "taskId: " + taskId);
 
     const queryClient = useQueryClient();
-    const {mutate, isLoading, isError, error} = useMutation((data: object) => {
-        return axios.put(`http://localhost:5000/task/${taskId}/update`, data, {
-            headers: {
-                Authorization: "Bearer " + token
+    // const {mutate, isLoading, isError, error} = useMutation((data: object) => {
+    //     return axios.put(`http://localhost:5000/task/${taskId}/update`, data, {
+    //         headers: {
+    //             Authorization: "Bearer " + token
+    //         }
+    //     });
+    // }, {
+    //     onSuccess: () => {
+    //         queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch details`);
+    //         setOpen(false);
+    //     }
+    // })
+    const { mutate, isLoading, isError, error } = useMutate(
+        axios.put, `http://localhost:5000/project/${projectId}/task/${taskId}/update`, {
+            onSuccess: () => {
+                queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch details`);
+                setOpen(false);
             }
-        });
-    }, {
-        onSuccess: () => {
-            queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch details`);
-            setOpen(false);
         }
-    })
+    );
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget); // .target doesn't work
-        const data = {...Object.fromEntries(fd.entries()), leaders, links, tags, projectId};
+        const data = {...Object.fromEntries(fd.entries()), leaders, links, tags};
 
         mutate(data);
     }
@@ -63,15 +72,21 @@ const UpdateTask: React.FC = (): JSX.Element => {
                         display: "flex",
                         flexDirection: "column",   
                     }}>
+                        <Typography variant="body1">
+                            Fill only the fields that you want to update.
+                            Note: Admins can update the entire task, leaders can update the title, the description
+                            and the status, and non-leaders are unauthorized.
+                        </Typography>
                         <TextField label="Task title" name="title" type="text" margin="normal"/>
                         <TextField label="Task description" name="description" type="text"  margin="normal"/>
                         <Autocomplete
-                            onChange={(event, value) => setLeaders(value)}
+                            onChange={(event, value) =>
+                                 setLeaders(value.map((usernameObj: { username: string }) => usernameObj.username))}
                             multiple
                             limitTags={3}
                             options={users ? users.data : []}
                             loading={usersLoading}
-                            getOptionLabel={(option: {username: string}) => option.username} // TODO: Remove comment if not necessary
+                            getOptionLabel={(option: {username: string}) => option.username}
                             renderInput={(params) => 
                                 <TextField
                                     {...params}
@@ -115,7 +130,7 @@ const UpdateTask: React.FC = (): JSX.Element => {
                             sx={{ width: '500px' }}
                         />
                         <FormLabel>Status</FormLabel> {/* DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUG!!!!!!!! */}
-                        <RadioGroup name="status" defaultValue="pending ">
+                        <RadioGroup name="status" defaultValue="pending">
                             <FormControlLabel value="pending" control={<Radio />} label="pending" />
                             <FormControlLabel value="development" control={<Radio />} label="development" />
                             <FormControlLabel value="maintenance" control={<Radio />} label="maintenance" />

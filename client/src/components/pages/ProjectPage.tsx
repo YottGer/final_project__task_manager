@@ -7,6 +7,8 @@ import Task from "../Task";
 import UpdateProject from "../UpdateProject";
 import { Typography, List, ListItem, CircularProgress } from "@mui/material";
 import useFetch from "../../hooks/useFetch";
+import { useSelector } from "react-redux";
+import { IAccessTokenState } from "./HomePage";
 
 export interface ITask {
     id: number,
@@ -20,6 +22,7 @@ export interface ITask {
 }
 
 const ProjectPage: React.FC = (): JSX.Element => {
+    const { isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
     const projectId = useParams().project_id;
 
     const { 
@@ -99,7 +102,7 @@ const ProjectPage: React.FC = (): JSX.Element => {
             }
             {tasksIsError && tasksError /* add a nice error page */}
             <CreateTask team={detailsData?.data.team} />
-            <UpdateProject />
+            {isAdmin && <UpdateProject />}
         </>
     );
 }

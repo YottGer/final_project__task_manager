@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
-Radio } from "@mui/material";
+Radio, 
+Typography} from "@mui/material";
 import { useSelector } from "react-redux";
 import { useQueryClient, useMutation, useQuery } from "react-query";
+import useMutate from "../hooks/useMutate";
+import useFetch from "../hooks/useFetch";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -12,19 +15,17 @@ const UpdateProject: React.FC = (): JSX.Element => {
     const navigate = useNavigate();
 
     const queryClient = useQueryClient();
-    const {mutate, isLoading, isError, error} = useMutation((data: object) => {
-        return axios.put(`http://localhost:5000/project/${projectId}/update`, data, {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-    }, {
+
+    const { mutate, isLoading, isError, error } =
+     useMutate(axios.put, `http://localhost:5000/project/${projectId}/update`, {
         onSuccess: () => {
-            queryClient.invalidateQueries('fetch-details' + projectId);
+            queryClient.invalidateQueries("fetchProjectDetails" + projectId);
             setOpen(false);
         },
-        onError: () => {alert("error - unauthorized! are you an admin?");} //runtimeerror - again!!!!!!!!!!
-    })
+        onError: () => {
+            alert("error - unauthorized! are you an admin?");
+        }
+     });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -35,18 +36,10 @@ const UpdateProject: React.FC = (): JSX.Element => {
     }
 
     const [open, setOpen] = useState(false);
-    const [team, setTeam] = useState(Array<any>()); // fix any!!!!!!!!!!!!!!!!!!!
+    const [team, setTeam] = useState(Array<string>());
 
-    const {data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useQuery(
-        "fetch-users-for-update" + projectId,
-        () => {
-            return axios.get("http://localhost:5000/users", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        }
-        );
-        }
+    const { data: users, isLoading: usersLoading, isError: usersIsError, error: usersError } = useFetch(
+        "fetch users for update" + projectId, "http://localhost:5000/users"
     );
 
     return(
@@ -57,10 +50,11 @@ const UpdateProject: React.FC = (): JSX.Element => {
                 display: "flex",
                 flexDirection: "column",   
             }}>
+                <Typography variant="body1">Fill only the fields that you want to update</Typography>
                 <TextField label="Project title" name="title" type="text" margin="normal"/>
                 <TextField label="Project description" name="description" type="text"  margin="normal"/>
                 <Autocomplete
-                    onChange={(event, value) => setTeam(value)}
+                    onChange={(event, value) => setTeam(value.map((usernameObj) => usernameObj.username))}
                     multiple
                     limitTags={3}
                     options={users ? users.data : []}
@@ -91,7 +85,7 @@ const UpdateProject: React.FC = (): JSX.Element => {
             <>
             {isLoading && 
                 <>
-                    Creating project...
+                    Updating project...
                     <br />
                     <CircularProgress />
                 </>

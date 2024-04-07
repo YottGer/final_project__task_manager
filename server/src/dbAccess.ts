@@ -1,5 +1,6 @@
 import { Client, QueryResult } from "pg";
-import { IUser, ITaskToUser, IExtendProject, IExtendTask, IComment } from "./interfaces";
+import { IUser, ITaskToUser, IProjectFromClient, IProjectForClient, ITaskFromClient,
+    ITaskForClient, IComment } from "./interfaces";
 import { JwtPayload } from "jsonwebtoken";
 
 class dbAccess {
@@ -70,7 +71,17 @@ class dbAccess {
             ) AS team
             FROM project WHERE id=${projectId};
         `;
-        this.executeQuery(query, (projectRows: IExtendProject[]) => next(projectRows[0]));
+        this.executeQuery(query, (projectRows: IProjectForClient[]) => next(projectRows[0]));
+    }
+
+    public getTeam(projectId: string, next: Function) {
+        const query = `
+            SELECT DISTINCT ON (username) username FROM project
+            INNER JOIN project_to_user ON project.id=project_to_user."projectId"
+            INNER JOIN "user" ON project_to_user."userId"="user".id
+            WHERE "projectId"=${projectId};
+        `;
+        this.executeQuery(query, next);
     }
     
     public getTasksForProject(projectId: string, next: Function) {
@@ -90,7 +101,7 @@ class dbAccess {
             ) AS leaders
             FROM task WHERE id=${taskId};
         `;
-        this.executeQuery(query, (taskRows: IExtendTask[]) => next(taskRows[0]));
+        this.executeQuery(query, (taskRows: ITaskForClient[]) => next(taskRows[0]));
     }
 
     public getCommentsForTask(taskId: string, next: Function) {
@@ -98,7 +109,7 @@ class dbAccess {
         this.executeQuery(query, next);
     }
     
-    public createProject({ title, description, team, status}: IExtendProject, next: Function) {
+    public createProject({ title, description, team, status}: IProjectFromClient, next: Function) {
         const query =
          `WITH project_id_set AS (
             INSERT INTO project(title, description, status)
@@ -115,7 +126,8 @@ class dbAccess {
     }
     
     public createTask(
-        { projectId, title, description, leaders, links, startDate, endDate, tags, status }: IExtendTask, 
+        projectId: string,
+        { title, description, leaders, links, startDate, endDate, tags, status }: ITaskFromClient, 
         next: Function
     ) {
         const query =
@@ -138,8 +150,57 @@ class dbAccess {
     }
 
     public createComment ({ taskId, title, content }: IComment, next: Function) {
-        //executeQuery(`INSERT INTO comment("taskId", title, content) VALUES (${taskId}, '${title}', '${content}');`);
         const query = `INSERT INTO comment("taskId", title, content) VALUES (${taskId}, '${title}', '${content}');`;
+        this.executeQuery(query, next);
+    }
+
+    public updateProject(projectId: string, project: IProjectFromClient, next: Function) {
+        let query = "";
+        for (const [key, val] of Object.entries(project)) {
+            if (val.length > 0) { // Handle the non-empty values except for id
+                if (key === "team") {
+                    query += `DELETE FROM project_to_user WHERE "projectId"=${projectId};`
+                    query +=`
+                        INSERT INTO project_to_user("projectId", "userId")
+                        VALUES ${
+                        project.team.map(
+                            username => `(${projectId}, (SELECT id FROM "user" WHERE username='${username}'))`
+                        ).join(", ")
+                        };
+                    `;
+                } else {
+                    query += `UPDATE project SET ${key}='${val}' WHERE id=${projectId};`;
+                }
+            }
+        }
+        this.executeQuery(query, next);
+    }
+
+    public updateTask(taskId: string, task: ITaskFromClient, next: Function) {
+        let query = "";
+        for (const [key, val] of Object.entries(task)) {
+            if (val.length > 0) { // Handle the non-empty values except for id
+                if (key === "leaders") {
+                    query += `DELETE FROM task_to_user WHERE "taskId"=${taskId};`
+                    query +=`
+                        INSERT INTO task_to_user("taskId", "userId")
+                        VALUES ${
+                        task.leaders.map(
+                            username => `(${taskId}, (SELECT id FROM "user" WHERE username='${username}'))`
+                        ).join(", ")
+                        };
+                    `;
+                } else if (key === "links" || key === "tags") {
+                    query += `
+                        UPDATE task SET ${key}=Array[${
+                        task[key].map((str: string) => "'" + str + "'")
+                        }] WHERE id=${taskId};
+                    `;
+                } else {
+                    query += `UPDATE task SET "${key}"='${val}' WHERE id=${taskId};`;
+                }
+            }
+        }
         this.executeQuery(query, next);
     }
 }

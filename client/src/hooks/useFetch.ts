@@ -9,7 +9,7 @@ interface IAccessTokenState { // this is code duplication!!!!!!!!!!!!!!!!!!
     }
 }
 
-const useFetch = (queryKey: string, route: string) => {
+const useFetch = (queryKey: string, route: string, queryConfig?: object) => {
     const { token } = useSelector((state: IAccessTokenState) => state.accessToken);
     return useQuery(queryKey, () => {
         return axios.get(route, {
@@ -17,7 +17,7 @@ const useFetch = (queryKey: string, route: string) => {
                 Authorization: "Bearer " + token
             }
         });
-    });
+    }, queryConfig);
 }
 
 export default useFetch;

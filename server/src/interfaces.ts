@@ -5,20 +5,25 @@ interface IUser {
     isAdmin: boolean
 }
 
-interface IProject {
-    id: number,
-    title: string,
+interface IBaseProject {
+    title: number,
     description: string,
     status: string
 }
 
-interface IExtendProject extends IProject {
-    team: string[],
+interface IProjectInDB extends IBaseProject {
+    id: number
 }
 
-interface ITask {
-    id: number,
-    projectId: number,
+interface IProjectForClient extends IProjectInDB {
+    team: string[]
+}
+
+interface IProjectFromClient extends IBaseProject {
+    team: string[]
+}
+
+interface IBaseTask {
     title: string,
     description: string,
     startDate: string,
@@ -27,7 +32,17 @@ interface ITask {
     links: string[],
     status: string
 }
-interface IExtendTask extends ITask {
+
+interface ITaskInDB extends IBaseTask {
+    id: number,
+    projectId: number
+}
+
+interface ITaskForClient extends ITaskInDB {
+    leaders: string[]
+}
+
+interface ITaskFromClient extends IBaseTask {
     leaders: string[]
 }
 
@@ -46,4 +61,8 @@ interface IExtendComment extends IComment {
     id: number,
 }
 
-export { IUser, IProject, IExtendProject, ITask, IExtendTask, ITaskToUser, IComment, IExtendComment };
+export { IUser, IProjectInDB, IProjectForClient, IProjectFromClient, ITaskInDB, ITaskForClient, ITaskFromClient
+    , ITaskToUser, IComment, IExtendComment };
+
+const foo = 8;
+export default foo;

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { TextField, Button, Dialog, CircularProgress } from "@mui/material";
 import { useParams } from "react-router-dom";
-import { useQueryClient, useMutation } from "react-query";
+import { useQueryClient } from "react-query";
+import useMutate from "../hooks/useMutate";
 import axios from "axios";
 
 const CreateComment: React.FC = (): JSX.Element => {
@@ -9,15 +10,12 @@ const CreateComment: React.FC = (): JSX.Element => {
     const taskId = parseInt(useParams().task_id ?? '-1'); // id can't be negative
 
     const queryClient = useQueryClient();
-    //change mutation to fit refactoring
-    const {mutate, isLoading, isError, error } = useMutation((data: object) => {
-        return axios.post("http://localhost:5000/create_comment", data);
-    }, {
+    const { mutate, isLoading, isError, error } = useMutate(axios.post, "http://localhost:5000/create_comment", {
         onSuccess: () => {
             queryClient.invalidateQueries(`project ${projectId} task ${taskId} fetch comments`);
             setOpen(false);
         }
-    })
+    });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

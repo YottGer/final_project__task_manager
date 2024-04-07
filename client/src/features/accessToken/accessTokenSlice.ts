@@ -5,6 +5,7 @@ export const accessTokenSlice = createSlice({
   initialState: {
     token: "",
     username: "",
+    isAdmin: false
   },
   reducers: {
     setToken: (state, action) => {
@@ -12,10 +13,13 @@ export const accessTokenSlice = createSlice({
     },
     setUsername: (state, action) => {
       state.username = action.payload;
+    },
+    setIsAdmin: (state, action) => {
+      state.isAdmin = action.payload;
     }
   }
 });
 
-export const { setToken, setUsername } = accessTokenSlice.actions;
+export const { setToken, setUsername, setIsAdmin } = accessTokenSlice.actions;
 
 export default accessTokenSlice.reducer;

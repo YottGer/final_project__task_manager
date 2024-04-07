@@ -18,7 +18,8 @@ const CreateTask: React.FC<{team: string[]}> = ({ team }): JSX.Element => {
     const projectId = parseInt(useParams().project_id ?? '-1'); // id can't be negative
 
     const queryClient = useQueryClient();
-    const {mutate, isLoading, isError, error} = useMutate(axios.post, "http://localhost:5000/create_task", {
+    const {mutate, isLoading, isError, error} = useMutate(
+        axios.post, `http://localhost:5000/project/${projectId}/create_task`, {
         onSuccess: () => {
             queryClient.invalidateQueries("fetchTasksForProject" + projectId);
             setOpen(false);
@@ -28,7 +29,7 @@ const CreateTask: React.FC<{team: string[]}> = ({ team }): JSX.Element => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget); // .target doesn't work
-        const data = {...Object.fromEntries(fd.entries()), leaders, links, tags, projectId};
+        const data = { ...Object.fromEntries(fd.entries()), leaders, links, tags };
 
         mutate(data);
     }

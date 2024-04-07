@@ -1,7 +1,8 @@
 Client:
 - Styling
 - Validation (if needed)
-- Implement redux-toolkit for light/dark theme toggle
+- Learn more about redux-toolkit, consider using it to pass data between HomePage and ProjectPage
+ (or ProjectPage and TaskPage)
 - Implement background fetching signaling
 - handle client error (runtime!) - for example, when trying to create/update a project as non-admin
 - arrange paths correctly (project/:projectId/task/:taskId...)
@@ -17,10 +18,8 @@ Client:
 
 
 Server:
-- validation
 - refresh token
 - tags and links are db arrays, so they throw an error when empty - fix that
-- in queries - change DELETE * to DELETE
 - rename server directory to backend directory
 
 DB:
@@ -51,4 +50,5 @@ Take a look at the logic that dispatched this action:  Object
 
 - how do I use redux if the dark-mode switch is in App component
 - move interfaces to whole app level and import in db/server/client
+ (fix it - there should be client-side interfaces and server-side ones)
 

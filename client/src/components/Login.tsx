@@ -4,7 +4,8 @@ import axios from "axios";
 import { Grid, Paper, Avatar, TextField, Button, Typography, CircularProgress } from "@mui/material";
 import LockIcon from '@mui/icons-material/Lock';
 import { useDispatch, useSelector } from "react-redux";
-import { setToken, setUsername } from "../features/accessToken/accessTokenSlice";
+import { setToken, setUsername, setIsAdmin } from "../features/accessToken/accessTokenSlice";
+import { isatty } from "tty";
 
 let accessToken: string;
 
@@ -16,11 +17,10 @@ const Login: React.FC = (): JSX.Element => {
         return axios.post("http://localhost:5000/login", data);
     }, {
         onSuccess: (data) => {
-            accessToken = data?.data.accessToken;
+            const { accessToken, username, isAdmin } = data?.data;
             dispatch(setToken(accessToken));
-            console.log(data?.data.username)
-            dispatch(setUsername(data?.data.username))
-            console.log("login token " + accessToken);
+            dispatch(setUsername(username));
+            dispatch(setIsAdmin(isAdmin));
         },
         onError: (error) => {
             console.log(error)

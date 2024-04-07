@@ -1,7 +1,8 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken, setUsername } from "../../features/accessToken/accessTokenSlice";
+import { setToken, setUsername, setIsAdmin } from "../../features/accessToken/accessTokenSlice";
 import { useNavigate } from "react-router-dom";
+import useFetch from "../../hooks/useFetch";
 import { useQuery } from "react-query";
 import axios from "axios";
 import { List, Button, CircularProgress, Typography } from "@mui/material";
@@ -15,15 +16,16 @@ export interface IProject {
     status: string
 }
 
-interface IAccessTokenState {
+export interface IAccessTokenState {
     accessToken: {
         token: string,
-        username: string
+        username: string,
+        isAdmin: boolean
     }
 }
 
 const HomePage: React.FC = (): JSX.Element => {
-    const { token, username } = useSelector((state: IAccessTokenState) => state.accessToken);
+    const { token, username, isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
     const isLoggedIn = token !== "";
 
     const dispatch = useDispatch();
@@ -32,15 +34,12 @@ const HomePage: React.FC = (): JSX.Element => {
     const logout = () => {
         dispatch(setToken(""));
         dispatch(setUsername(""));
+        dispatch(setIsAdmin(false));
         navigate("/"); // refresh page
     }
 
-    const { data, isLoading, isFetching, isError, error } = useQuery("fetch-projects", () => {
-        return axios.get("http://localhost:5000/projects", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
+    const { data, isLoading, isFetching, isError, error } = useFetch("fetchProjects", "http://localhost:5000/projects", {
+        enabled: isLoggedIn
     });
 
     return (
@@ -49,7 +48,7 @@ const HomePage: React.FC = (): JSX.Element => {
             {
             isLoggedIn && 
             <>
-                <Typography variant="h6">welcome {username}!</Typography>
+                <Typography variant="h6">welcome {username}! You are {isAdmin ? "" : "not"} an admin!</Typography>
                 <Button onClick={logout}>Logout</Button>
                 <Typography variant="h5">Your projects:</Typography>    
                 <List>
@@ -70,7 +69,8 @@ const HomePage: React.FC = (): JSX.Element => {
                     </>
                 }
                 {isError && error /* add a nice error page */}
-                <Button onClick={() => navigate("/create_project")} variant="contained">Create Project</Button>
+                {isAdmin && 
+                 <Button onClick={() => navigate("/create_project")} variant="contained">Create Project</Button>}
             </>
             }
         </>
