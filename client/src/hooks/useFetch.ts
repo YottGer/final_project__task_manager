@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { useQuery } from "react-query";
 import axios from "axios";
 
-interface IAccessTokenState { // this is code duplication!!!!!!!!!!!!!!!!!!
+interface IAccessTokenState {
     accessToken: {
         token: string,
         username: string

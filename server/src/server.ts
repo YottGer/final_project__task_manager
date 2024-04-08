@@ -144,3 +144,6 @@ const port = process.env.PORT || 5000;
 router.listen(port, () => console.log(`Listening on port ${port}...`));
 
 // TODO: Catch errors!
+/* TODO: Make sure that no empty content is sent to createProject / createTask
+ * (error: "cannot determine type of empty array")
+*/

@@ -3,11 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername, setIsAdmin } from "../../features/accessToken/accessTokenSlice";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
-import { useQuery } from "react-query";
-import axios from "axios";
 import { List, Button, CircularProgress, Typography } from "@mui/material";
 import Project from "../Project";
 import Login from "../Login";
+import ErrorComp from "../ErrorComp";
 
 export interface IProject {
     id: number
@@ -44,9 +43,11 @@ const HomePage: React.FC = (): JSX.Element => {
 
     return (
         <>
-            {isLoggedIn || <Login />}
             {
-            isLoggedIn && 
+            isLoggedIn ?
+            (isError ? 
+            <ErrorComp err={error} />
+            :
             <>
                 <Typography variant="h6">welcome {username}! You are {isAdmin ? "" : "not"} an admin!</Typography>
                 <Button onClick={logout}>Logout</Button>
@@ -68,10 +69,12 @@ const HomePage: React.FC = (): JSX.Element => {
                         <CircularProgress />
                     </>
                 }
-                {isError && error /* add a nice error page */}
                 {isAdmin && 
                  <Button onClick={() => navigate("/create_project")} variant="contained">Create Project</Button>}
             </>
+            )
+            :
+            <Login />
             }
         </>
     );

@@ -1,7 +1,5 @@
 import React from "react";
 import CreateTask from "../CreateTask";
-import { useQuery } from "react-query";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 import Task from "../Task";
 import UpdateProject from "../UpdateProject";
@@ -9,6 +7,7 @@ import { Typography, List, ListItem, CircularProgress } from "@mui/material";
 import useFetch from "../../hooks/useFetch";
 import { useSelector } from "react-redux";
 import { IAccessTokenState } from "./HomePage";
+import ErrorComp from "../ErrorComp";
 
 export interface ITask {
     id: number,
@@ -41,16 +40,23 @@ const ProjectPage: React.FC = (): JSX.Element => {
         error: tasksError 
     } = useFetch("fetchTasksForProject" + projectId, `http://localhost:5000/project/${projectId}/tasks`);
 
+    if (detailsIsError)
+        return <ErrorComp err={detailsError} />;
+    
+    if (tasksIsError)
+        return <ErrorComp err={tasksError} />;
+
     return (
         <>
-            {(detailsLoading || detailsFetching) && 
-                <>
-                    Fetching project details
-                    <br />
-                    <CircularProgress />
-                </>
+            {(detailsLoading || detailsFetching) ? 
+            <>
+                Fetching project details
+                <br />
+                <CircularProgress />
+            </>
+            :
+            <></>
             }
-            {detailsIsError && detailsError /* add a nice error page */}
             <Typography variant="h4">Title: {detailsData?.data.title}</Typography>
             <Typography variant="h5">description: {detailsData?.data.description}</Typography>
             <Typography variant="body1">status: {detailsData?.data.status}</Typography>
@@ -93,16 +99,17 @@ const ProjectPage: React.FC = (): JSX.Element => {
                     />)}
                 </List>
             </div>
-            {(tasksLoading || tasksFetching) && 
-                <>
-                    Fetching project details
-                    <br />
-                    <CircularProgress />
-                </>
+            {(tasksLoading || tasksFetching) ? 
+            <>
+                Fetching project details
+                <br />
+                <CircularProgress />
+            </>
+            :
+            <></>
             }
-            {tasksIsError && tasksError /* add a nice error page */}
             <CreateTask team={detailsData?.data.team} />
-            {isAdmin && <UpdateProject />}
+            {isAdmin ? <UpdateProject /> : <></>}
         </>
     );
 }

@@ -1,41 +1,33 @@
-import React, { useReducer } from "react";
-import { useMutation } from "react-query";
-import axios from "axios";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setToken, setUsername, setIsAdmin } from "../features/accessToken/accessTokenSlice";
+import useMutate from "../hooks/useMutate";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { Grid, Paper, Avatar, TextField, Button, Typography, CircularProgress } from "@mui/material";
 import LockIcon from '@mui/icons-material/Lock';
-import { useDispatch, useSelector } from "react-redux";
-import { setToken, setUsername, setIsAdmin } from "../features/accessToken/accessTokenSlice";
-import { isatty } from "tty";
-
-let accessToken: string;
+import ErrorComp from "./ErrorComp";
 
 const Login: React.FC = (): JSX.Element => {
     const dispatch = useDispatch();
+    const [showTryAgain, setShowTryAgain] = useState(false);
 
-    const { mutate, isLoading, isError, error } = useMutation((data: object) => {
-        console.log("sending data to login route");
-        return axios.post("http://localhost:5000/login", data);
-    }, {
-        onSuccess: (data) => {
+    const { mutate, isLoading, isError, error } = useMutate(axios.post, "http://localhost:5000/login", {
+        onSuccess: (data: AxiosResponse) => {
             const { accessToken, username, isAdmin } = data?.data;
             dispatch(setToken(accessToken));
             dispatch(setUsername(username));
             dispatch(setIsAdmin(isAdmin));
-        },
-        onError: (error) => {
-            console.log(error)
         }
-    })
+    });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setShowTryAgain(true);
         const fd = new FormData(event.currentTarget); // .target doesn't work
         const data = Object.fromEntries(fd.entries());
-
         mutate(data);
     }
 
-    const username = useSelector((state: any) => state.username); // fix 'any'!!!!!!!!!!!!!!!
     const paperStyle = {padding: 20, height: '42.5vh', width: 280, margin: "20px auto"};
 
     return(
@@ -43,7 +35,7 @@ const Login: React.FC = (): JSX.Element => {
             <Paper elevation={10} style={paperStyle}>
                 <Grid display="flex" justifyContent="center" alignItems="center" flexDirection="column">
                     <Avatar><LockIcon /></Avatar>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} autoComplete="off">
                         <Typography variant="h5">Login</Typography>
                         <TextField
                             name="username" 
@@ -51,7 +43,8 @@ const Login: React.FC = (): JSX.Element => {
                             placeholder="Enter username" 
                             fullWidth 
                             required
-                            style={{margin: "10px"}} />
+                            style={{margin: "10px"}}
+                            onChange={() => setShowTryAgain(false)} />
                         <TextField
                             name="password"
                             label="Password" 
@@ -59,7 +52,8 @@ const Login: React.FC = (): JSX.Element => {
                             type="password" 
                             fullWidth 
                             required
-                            style={{margin: "10px"}} />
+                            style={{margin: "10px"}}
+                            onChange={() => setShowTryAgain(false)} />
                         <Grid display="flex" justifyContent="center">
                             <Button 
                             type="submit" 
@@ -77,33 +71,29 @@ const Login: React.FC = (): JSX.Element => {
                     <CircularProgress />
                 </>
             }
-            {isError && error /* add a nice error page */}
+            {isError ? 
+            ((error instanceof AxiosError && error.response?.status === 401) ?
+            (showTryAgain ? <>Username and password don't match! try again...</> : <></>)
+            :
+            <ErrorComp err={error} />
+            )
+            : <></>}
         </>
     );
 }
 
 export default Login;
 
-//TODO: send/store hashed passwords
-
 /*
-I don't understand - am I using redux-toolkit correctly?
-how does redux help me?
-In addition, I don't understand the authentication process - why do I need JWT?
-I transfer the JWT instead of (username, hashed-password), but what's the difference?
-Security? Is it more secure that sending hashed-password?
-Interception? can't the JWT be intercepted either?
-And about admin status - can't I store the "isAdmin" on client somehow?
-It seems unneccessary to check isAdmin every single time.
-*/
+I always get the following error in the console:
 
-/*error: 
 A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
     _pStore.dispatch({
       type: _constants__WEBPACK_IMPORTED_MODULE_0__.REGISTER,
       key: key
     });
-  } 
-*/
+  }
+...
 
-//So, I get the above error, and I don't understand what it means, but the token persists between refreshes!!!
+I don't understand what it means, and it doesn't seem to affect the app.
+*/

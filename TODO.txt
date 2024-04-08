@@ -37,6 +37,7 @@ Other:
 - Catch all errors
 - Make the entire code prettier
 - in home page (?), error in the console:
+- send/store hashed passwords!
 
 A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
     _pStore.dispatch({
@@ -51,4 +52,8 @@ Take a look at the logic that dispatched this action:  Object
 - how do I use redux if the dark-mode switch is in App component
 - move interfaces to whole app level and import in db/server/client
  (fix it - there should be client-side interfaces and server-side ones)
+
+ Questions:
+ - why do I need JWT?
+ - why do I need Redux?
 

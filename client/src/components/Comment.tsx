@@ -1,6 +1,6 @@
 import React from "react";
 import { IComment } from "./pages/TaskPage";
-import { ListItem, ListItemText, Typography } from "@mui/material";
+import { ListItem, ListItemText } from "@mui/material";
 
 const Comment: React.FC<IComment> = ({title, content}): JSX.Element => {
     return (

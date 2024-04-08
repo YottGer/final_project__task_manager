@@ -1,12 +1,11 @@
 import React from "react";
-import { useQuery } from "react-query";
-import axios from "axios";
-import { Typography, Chip, List, ListItem, CircularProgress } from "@mui/material";
 import { useParams } from "react-router-dom";
-import CreateComment from "../CreateComment";
-import Comment from "../Comment";
-import UpdateTask from "../UpdateTask";
 import useFetch from "../../hooks/useFetch";
+import ErrorComp from "../ErrorComp";
+import { Typography, Chip, List, ListItem, CircularProgress } from "@mui/material";
+import Comment from "../Comment";
+import CreateComment from "../CreateComment";
+import UpdateTask from "../UpdateTask";
 
 export interface IComment {
     id: number,
@@ -29,9 +28,6 @@ const TaskPage: React.FC = (): JSX.Element => {
         `project ${projectId} task ${taskId} fetch details`,
         `http://localhost:5000/project/${projectId}/task/${taskId}`
     );
-    // useQuery("fetch-details" + taskId, () => {
-    //     return axios.get(`http://localhost:5000/task/${taskId}`);
-    // })
 
     const {
         data: commentsData, 
@@ -43,26 +39,33 @@ const TaskPage: React.FC = (): JSX.Element => {
         `project ${projectId} task ${taskId} fetch comments`,
         `http://localhost:5000/project/${projectId}/task/${taskId}/comments`
     );
-    // useQuery("fetch-comments" + taskId, () => {
-    //     return axios.get(`http://localhost:5000/task/${taskId}/comments`);
-    // })
+
+    if (detailsIsError)
+        return <ErrorComp err={detailsError} />;
+    
+    if (commentsIsError)
+        return <ErrorComp err={commentsError} />;
 
     return (
         <>
         <Typography variant="h4">Task details:</Typography>
-        {(detailsLoading || detailsFetching) && 
-                <>
-                    Fetching task details
-                    <br />
-                    <CircularProgress />
-                </>
+        {(detailsLoading || detailsFetching) ? 
+        <>
+            Fetching task details
+            <br />
+            <CircularProgress />
+        </>
+        :
+        <></>
         }
-        {detailsIsError && detailsError /* add a nice error page */}
         <Typography variant="h5">title: {detailsData?.data.title}</Typography>
         <Typography variant="body1">description: {detailsData?.data.description}</Typography>
         <Typography variant="body2">start date: {detailsData?.data.startDate}</Typography>
         <Typography variant="body2">end date: {detailsData?.data.endDate}</Typography>
-        <Typography variant="body2">tags: {detailsData?.data.tags?.map((tagStr: string) => <Chip color="info" label={tagStr} />)}</Typography>
+        <Typography variant="body2">
+            tags: {detailsData?.data.tags?.map((tagStr: string, index: number) =>
+             <Chip key={`Tag ${index} for task ${taskId} in TaskPage`} color="info" label={tagStr} />)}
+        </Typography>
         <Typography variant="body2">
             links:
             <List>
@@ -82,19 +85,19 @@ const TaskPage: React.FC = (): JSX.Element => {
         <Typography variant="body2">
             status: {detailsData?.data.status}
         </Typography>
-        {/* fix any!!!!!!!!!!!!!!!!!!! */}
         <Typography variant="h4">Comments:</Typography>
-        {(commentsIsLoading || commentsIsFetching) && 
-                <>
-                    Fetching comments
-                    <br />
-                    <CircularProgress />
-                </>
+        {(commentsIsLoading || commentsIsFetching) ? 
+        <>
+            Fetching comments
+            <br />
+            <CircularProgress />
+        </>
+        :
+        <></>
         }
-        {commentsIsError && commentsError /* add a nice error page */}
         <List>
-            {commentsData?.data.map((comment: IComment) =>
-            <Comment {...comment} />)}
+            {commentsData?.data.map((comment: IComment, index: number) =>
+             <Comment key={`Task ${taskId} comment ${index}`} {...comment} />)}
         </List>
         <CreateComment />
         <UpdateTask />
