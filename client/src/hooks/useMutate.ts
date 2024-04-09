@@ -1,6 +1,5 @@
 import { useSelector } from "react-redux";
 import { useMutation } from "react-query";
-import axios from "axios";
 
 interface IAccessTokenState {
     accessToken: {

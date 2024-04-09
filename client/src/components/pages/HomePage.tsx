@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername, setIsAdmin } from "../../features/accessToken/accessTokenSlice";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
+import LoginPage from "./LoginPage";
+import ErrorComp from "../ErrorComp";
 import { List, Button, CircularProgress, Typography } from "@mui/material";
 import Project from "../Project";
-import Login from "../Login";
-import ErrorComp from "../ErrorComp";
+
 
 export interface IProject {
     id: number
@@ -24,7 +25,7 @@ export interface IAccessTokenState {
 }
 
 const HomePage: React.FC = (): JSX.Element => {
-    const { token, username, isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
+    const { token, isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
     const isLoggedIn = token !== "";
 
     const dispatch = useDispatch();
@@ -41,40 +42,40 @@ const HomePage: React.FC = (): JSX.Element => {
         enabled: isLoggedIn
     });
 
+    if(!isLoggedIn) {
+        return <LoginPage />; // Is this a good practice?
+    }
+
+    if (isError)
+        return <ErrorComp err={error} />;
+
     return (
         <>
-            {
-            isLoggedIn ?
-            (isError ? 
-            <ErrorComp err={error} />
-            :
+            <Button onClick={logout} variant="contained">Logout</Button>
+            <Typography variant="h5">Your projects:</Typography>    
+            <List>
+            {data?.data.map(({ id, title, description, status }: IProject) =>
+            <Project
+                key={"project" + id}
+                id={id}
+                title={title}
+                description={description}
+                status={status}
+            />)}
+            </List>
+            {(isLoading || isFetching) ? 
             <>
-                <Typography variant="h6">welcome {username}! You are {isAdmin ? "" : "not"} an admin!</Typography>
-                <Button onClick={logout}>Logout</Button>
-                <Typography variant="h5">Your projects:</Typography>    
-                <List>
-                {data?.data.map(({ id, title, description, status }: IProject) =>
-                <Project
-                    key={"project" + id}
-                    id={id}
-                    title={title}
-                    description={description}
-                    status={status}
-                />)}
-                </List>
-                {(isLoading || isFetching) && 
-                    <>
-                        Fetching projects
-                        <br />
-                        <CircularProgress />
-                    </>
-                }
-                {isAdmin && 
-                 <Button onClick={() => navigate("/create_project")} variant="contained">Create Project</Button>}
+                Fetching projects
+                <br />
+                <CircularProgress />
             </>
-            )
             :
-            <Login />
+            <></>
+            }
+            {isAdmin ?
+            <Button href="/create_project" variant="contained">Create Project</Button>
+            :
+            <></>
             }
         </>
     );

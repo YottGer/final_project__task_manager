@@ -1,43 +1,6 @@
-Client:
-- Styling
-- Validation (if needed)
-- Learn more about redux-toolkit, consider using it to pass data between HomePage and ProjectPage
- (or ProjectPage and TaskPage)
-- Implement background fetching signaling
-- handle client error (runtime!) - for example, when trying to create/update a project as non-admin
-- arrange paths correctly (project/:projectId/task/:taskId...)
-- create a generic component for CreateProject and UpdateProject, CreateTask and UpdateTask...
-- create a generic modal component (for UpdateProject, UpdateTask ...)
-- make the form fields required
-- in ProjectPage fetch only the required task-details (not all of them!),
-  and similarly in HomePage fetch only the required project-details.
-- use global state to access team (fetched by ProjectPage) from UpdateTask (instead of fetching again in UpdateTask)
-- in UpdateTask I don't throw an error when an unauthorized user tries to update. I just don't update. fix that -
-  keep consistency and notify the user for his permissions.
-- rename client directory to front-end directory
-
-
-Server:
-- refresh token
-- tags and links are db arrays, so they throw an error when empty - fix that
-- rename server directory to backend directory
-
-DB:
-- create tagId <-> tagString table and save tagIds in the task record instead of text[]
-- read about the text[] in postgreSQL and check wether it is easy to access it in native SQL. if not, change to link table
-- make sure no repeated strings are stored in the db. for example - change the "status" column of a project from text
-  to integer, refrencing the id of a row in a table with two columns - statusId, statusText.
-- there seems to be a problem with dates - updated dates are 1 day before what is wanted.
-- move DB files to a DB directory
-- where do I put dbClient.end() ?!?!?!?!
-
-Other:
-- Manage packages
-- Change path names to include - instead of _ (?)
-- Catch all errors
-- Make the entire code prettier
-- in home page (?), error in the console:
-- send/store hashed passwords!
+CLIENT:
+- Error catching.
+- Specifically, handle the following error:
 
 A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
     _pStore.dispatch({
@@ -49,11 +12,21 @@ Take a look at the logic that dispatched this action:  Object
 (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
 (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)
 
-- how do I use redux if the dark-mode switch is in App component
-- move interfaces to whole app level and import in db/server/client
- (fix it - there should be client-side interfaces and server-side ones)
+I don't understand this error, and it doesn't seem to affect the app.
 
- Questions:
- - why do I need JWT?
- - why do I need Redux?
+SERVER:
+- Should I use a refresh token, or is my current method correct?
+- Error catching.
 
+DB:
+- Read about the array (for example text[]) type in postgreSQL and check wether it is easy to access its values
+  in native SQL. if not, don't use it, and instead implement a linking table.
+- Make sure no repeated strings are stored in the DB. Both the tags and the status (project status or task status)
+  are repeated strings stored in the DB. It is better to implement a linking table (create a tagId <-> tagText table
+  and save only the tagIds in the task record).
+- Find out where to place dbClient.end() command.
+
+Other:
+- Manage packages and sort imports by the order of usage.
+- send/store hashed passwords (for security).
+- Manage interfaces at the entire project level.

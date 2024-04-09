@@ -7,6 +7,9 @@ import useMutate from "../hooks/useMutate";
 import ErrorComp from "./ErrorComp";
 import { Typography, TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
 Radio } from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from "dayjs";
 
 interface ITaskFormDialogProps {
     axiosFn: Function,
@@ -111,12 +114,13 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
                             )}
                             sx={{ width: '500px' }}
                         />
-                        <FormLabel>Start date</FormLabel>
-                        <input type="date" name="startDate" required={toCreate} />
-                        <FormLabel>End date</FormLabel>
-                        <input type="date" name="endDate" required={toCreate} />
-                        {/* IS THERE A PROBLEM WITH THE DATES!?@E>!?>E#?.err
-                        seems that the updated date is a day before what we want */}            
+                        <LocalizationProvider dateAdapter={AdapterDayjs} >
+                            <DatePicker name="startDate" label="Start date" format="DD/MM/YYYY" sx={{margin: "7.5px"}}
+                             defaultValue={dayjs("01/01/2000")} />
+                            <DatePicker name="endDate" label="End date" format="DD/MM/YYYY" sx={{margin: "5px"}}
+                             defaultValue={dayjs("01/01/2000")} />
+                            {/* Disable the default value when the form is meant to update! */}
+                        </LocalizationProvider>          
                         <Autocomplete
                             onChange={(_, value) => setTags(value)}
                             multiple

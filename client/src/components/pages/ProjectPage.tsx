@@ -61,7 +61,7 @@ const ProjectPage: React.FC = (): JSX.Element => {
             <Typography variant="h5">description: {detailsData?.data.description}</Typography>
             <Typography variant="body1">status: {detailsData?.data.status}</Typography>
             <Typography variant="body1">
-                team: 
+                team:
                 <List>
                     {detailsData?.data.team.map((username: string, index: number) =>
                     <ListItem key={`project ${projectId} member ${index}`}>{username}</ListItem>

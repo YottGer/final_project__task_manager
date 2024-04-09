@@ -1,13 +1,13 @@
+import dotenv from "dotenv";
+dotenv.config({path: "../.gitignore/.env"});
 import express, { json, Request, Response } from "express";
-import { JwtPayload, sign, verify, VerifyCallback } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 const cors = require("cors"); // import doesn't work, so I have to use require()
 import dbAccess from "./dbAccess";
 import { IProjectInDB, IProjectForClient, ITaskInDB, ITaskForClient, IUser, IExtendComment } from "./interfaces";
 
-const secret = "b6506e25c723b2327383c15ed6342a320857cf16035460504f09d1ee92f392846ce9ffecd8c5215f19593f452f4cfaa6d6ed6bd97a700ba7f3ba4dcfa5ab6444";
-const refreshSecret = "411c3b1fb19ca25127a3360a266feaa84312f05ddb1627e82aa27e3b7a7ddf7e8872b0f95a2fe7877bc753570af30d324f3410bbd64bd05f7771ae1316db32ab";
-//TODO: Hide the secretes in a .env file
-//TODO: Use refresh token
+const secret = process.env.ACCESS_TOKEN_SECRET ?? "";
+const refreshSecret = process.env.REFRESH_TOKEN_SECRET; //How should I use a refresh token?
 
 const db = new dbAccess();
 
@@ -19,7 +19,6 @@ const wrapperMiddleware = (req: Request, res: Response, next: Function) => {
 
 const baseValdiationMiddleware = (req: Request, res: Response, next: Function) => {
     // This is a basic validation middleware, that is meant to prevent SQL injection attacks
-    console.log("got to validation middleware");
     if (Object.values(req.body).includes("'"))
         return res.status(409).send("Invalid charcater!");
     next();
@@ -28,15 +27,12 @@ const baseValdiationMiddleware = (req: Request, res: Response, next: Function) =
 const autherizeTokenMiddleware = (req: Request, res: Response, next: Function) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.split(' ')[1]; // (Authorization: )Bearer <token>
-    if (!token) return res.sendStatus(401);
-    verify(token, secret, (err, username) => {
-        /*
-         * Problem: I am not sure whether or not username is a string
-         * or an object of the form { username: string, iat: number }
-        */
+    if (!token) return res.status(401).send("Access token in empty");
+    verify(token, secret, (err, usernameObj: any) => {
+        // I couldn't figure out how to reduce the type of usernameObj
         if (err) return res.status(403).send("Access token verification failed: " + err.message);
-        Object.assign(req, { username: username }); // That is how I pass data to the next callback
-        db.checkIsAdmin(username, (isAdmin: boolean) => {
+        Object.assign(req, { username: usernameObj?.username }); // That is how I pass data to the next callback
+        db.checkIsAdmin(usernameObj?.username, (isAdmin: boolean) => {
             Object.assign(req, { isAdmin: isAdmin } );
             next();
         });
@@ -100,7 +96,7 @@ router.post("/login", baseValdiationMiddleware, (req, res) => {
     db.checkUsernamePassword(username, password, (isUsernamePassword: boolean) => {
         if (isUsernamePassword)
             return db.checkIsAdmin(username, (isAdmin: boolean) => {res.status(200).send(
-                { accessToken: sign(username, secret), username, isAdmin }
+                { accessToken: sign({ username }, secret, { expiresIn: "30m" }), username, isAdmin }
             )})
         return res.status(401).send("Login failure");
     })
@@ -108,14 +104,20 @@ router.post("/login", baseValdiationMiddleware, (req, res) => {
 
 router.post("/create_project", baseValdiationMiddleware, (req: any, res) => { // See comment in isLeaderOfTaskMiddleware
     const isAdmin = req.isAdmin;
-    if (isAdmin)
-    db.createProject(req.body, () => res.sendStatus(200));
-    else
-        res.status(401).send("Must be admin to create project!");
+    if (isAdmin) {
+        if (req.body.team.length > 0)
+            db.createProject(req.body, () => res.sendStatus(200));
+        else
+            res.status(400).send("Team mustn't be empty!");
+    } else
+        res.status(401).send("Must be an admin to create project!");
 });
 
 router.post("/project/:projectId/create_task", baseValdiationMiddleware, (req, res) => {
-    db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+    if (req.body.leaders.length > 0 && req.body.tags.length > 0)
+        db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+    else
+        res.status(400).send("Leaders and tags mustn't be empty!");
 });
 
 router.post("/create_comment", baseValdiationMiddleware, (req, res) => {
@@ -129,7 +131,8 @@ router.put("/project/:projectId/update", baseValdiationMiddleware, (req: any, re
         res.status(403).send("Unauthorized - nothing updated!");
 });
 
-router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, isLeaderOfTaskMiddleware, (req: any, res) => { // See comment in isLeaderOfTaskMiddleware
+router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, isLeaderOfTaskMiddleware, (req: any, res) => {
+    // See comment in isLeaderOfTaskMiddleware
     if (req.isAdmin)
         db.updateTask(req.params.taskId, req.body, () => res.sendStatus(200));
     else if (req.isLeader)
@@ -140,10 +143,5 @@ router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, 
         res.status(403).send("Unauthorized - nothing updated!");
 });
 
-const port = process.env.PORT || 5000;
+const port = 5000;
 router.listen(port, () => console.log(`Listening on port ${port}...`));
-
-// TODO: Catch errors!
-/* TODO: Make sure that no empty content is sent to createProject / createTask
- * (error: "cannot determine type of empty array")
-*/

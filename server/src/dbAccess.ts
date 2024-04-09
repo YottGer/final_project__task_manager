@@ -23,7 +23,7 @@ class dbAccess {
         console.log(query);
         this.dbClient.query(query)
             .then(result => next(result.rows))
-            .catch(err => { throw new Error("DB error: " + err.message) })
+            .catch(err => { throw new Error(err.message) })
     }   
     
     public checkUsernamePassword(username: string, password: string, next: Function) {
@@ -92,7 +92,10 @@ class dbAccess {
     public getTaskWithLeaders(taskId: string, next: Function) {
         const query = `
             SELECT 
-            *,
+            id, "projectId", title, description, tags,
+            to_char("startDate", 'DD-MM-YYYY') AS "startDate",
+            to_char("endDate", 'DD-MM-YYYY') AS "endDate",
+            tags, links, status,
             ARRAY (
                 SELECT "username" 
                 FROM task_to_user
@@ -207,6 +210,3 @@ class dbAccess {
 
 
 export default dbAccess;
-
-// TODO:
-// - Catch errors
