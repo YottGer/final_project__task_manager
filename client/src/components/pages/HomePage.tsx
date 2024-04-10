@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername, setIsAdmin } from "../../features/accessToken/accessTokenSlice";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import LoginPage from "./LoginPage";
 import ErrorComp from "../ErrorComp";
-import { List, Button, CircularProgress, Typography } from "@mui/material";
+import { Button, Typography, List, CircularProgress } from "@mui/material";
 import Project from "../Project";
 
 

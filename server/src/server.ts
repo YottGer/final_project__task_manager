@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({path: "../.gitignore/.env"});
+dotenv.config({path: "../.env"});
 import express, { json, Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 const cors = require("cors"); // import doesn't work, so I have to use require()
@@ -114,7 +114,7 @@ router.post("/create_project", baseValdiationMiddleware, (req: any, res) => { //
 });
 
 router.post("/project/:projectId/create_task", baseValdiationMiddleware, (req, res) => {
-    if (req.body.leaders.length > 0 && req.body.tags.length > 0)
+    if (req.body.leaders.length > 0 && req.body.tags.length > 0 && req.body.links.length > 0)
         db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
     else
         res.status(400).send("Leaders and tags mustn't be empty!");

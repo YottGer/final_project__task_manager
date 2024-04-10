@@ -116,10 +116,9 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
                         />
                         <LocalizationProvider dateAdapter={AdapterDayjs} >
                             <DatePicker name="startDate" label="Start date" format="DD/MM/YYYY" sx={{margin: "7.5px"}}
-                             defaultValue={dayjs("01/01/2000")} />
+                             defaultValue={toCreate ? dayjs("01/01/2000") : undefined} />
                             <DatePicker name="endDate" label="End date" format="DD/MM/YYYY" sx={{margin: "5px"}}
-                             defaultValue={dayjs("01/01/2000")} />
-                            {/* Disable the default value when the form is meant to update! */}
+                             defaultValue={toCreate ? dayjs("01/01/2000") : undefined} />
                         </LocalizationProvider>          
                         <Autocomplete
                             onChange={(_, value) => setTags(value)}

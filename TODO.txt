@@ -14,8 +14,10 @@ Take a look at the logic that dispatched this action:  Object
 
 I don't understand this error, and it doesn't seem to affect the app.
 
+- Is it ok that I return the LoginPage component inside HomePage (where the user is not logged in)?
+
 SERVER:
-- Should I use a refresh token, or is my current method correct?
+- Should I use a refresh token? What I want to do, is to ask the user to login every time the token expires.
 - Error catching.
 
 DB:
