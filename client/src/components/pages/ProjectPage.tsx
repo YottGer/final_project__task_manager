@@ -1,13 +1,14 @@
 import React from "react";
-import CreateTask from "../CreateTask";
-import { useParams } from "react-router-dom";
-import Task from "../Task";
-import UpdateProject from "../UpdateProject";
-import { Typography, List, ListItem, CircularProgress } from "@mui/material";
-import useFetch from "../../hooks/useFetch";
 import { useSelector } from "react-redux";
 import { IAccessTokenState } from "./HomePage";
+import { useParams } from "react-router-dom";
+import useFetch from "../../hooks/useFetch";
 import ErrorComp from "../ErrorComp";
+import { Typography, List, ListItem } from "@mui/material";
+import Loading from "../Loading";
+import Task from "../Task";
+import CreateTask from "../CreateTask";
+import UpdateProject from "../UpdateProject";
 
 export interface ITask {
     id: number,
@@ -48,15 +49,6 @@ const ProjectPage: React.FC = (): JSX.Element => {
 
     return (
         <>
-            {(detailsLoading || detailsFetching) ? 
-            <>
-                Fetching project details
-                <br />
-                <CircularProgress />
-            </>
-            :
-            <></>
-            }
             <Typography variant="h4">Title: {detailsData?.data.title}</Typography>
             <Typography variant="h5">description: {detailsData?.data.description}</Typography>
             <Typography variant="body1">status: {detailsData?.data.status}</Typography>
@@ -68,52 +60,49 @@ const ProjectPage: React.FC = (): JSX.Element => {
                     )}
                 </List>
             </Typography>
+            <Loading enabled={detailsLoading || detailsFetching} msg="Fetching project details" />
             <Typography variant="h6">Tasks:</Typography>
             <div style={{display: "flex", flexDirection: "row"}}>
-                <List>
-                    {tasksData?.data.filter((task: ITask) => task.status !== "done" ).map((task: ITask) =>
-                    <Task
-                        key={`project ${projectId} task ${task.id}`}
-                        id={task.id}
-                        projectId={task.projectId}
-                        title={task.title}
-                        description={task.description}
-                        startDate={task.startDate}
-                        endDate={task.endDate}
-                        tags={task.tags}
-                        status={task.status}
-                    />)}
-                </List>
-                <List>
-                    {tasksData?.data.filter((task: ITask) => task.status === "done" ).map((task: ITask) =>
-                    <Task
-                        key={`project ${projectId} task ${task.id}`}
-                        id={task.id}
-                        projectId={task.projectId}
-                        title={task.title}
-                        description={task.description}
-                        startDate={task.startDate}
-                        endDate={task.endDate}
-                        tags={task.tags}
-                        status={task.status}
-                    />)}
-                </List>
+                <div style={{display: "flex", flexDirection: "column"}}>
+                    <Typography variant="body1">In the works:</Typography>
+                    <List>
+                        {tasksData?.data.filter((task: ITask) => task.status !== "done" ).map((task: ITask) =>
+                        <Task
+                            key={`project ${projectId} task ${task.id}`}
+                            id={task.id}
+                            projectId={task.projectId}
+                            title={task.title}
+                            description={task.description}
+                            startDate={task.startDate}
+                            endDate={task.endDate}
+                            tags={task.tags}
+                            status={task.status}
+                        />)}
+                    </List>
+                </div>
+                <div style={{display: "flex", flexDirection: "column"}}>
+                    <Typography variant="body1">Done:</Typography>
+                    <List>
+                        {tasksData?.data.filter((task: ITask) => task.status === "done" ).map((task: ITask) =>
+                        <Task
+                            key={`project ${projectId} task ${task.id}`}
+                            id={task.id}
+                            projectId={task.projectId}
+                            title={task.title}
+                            description={task.description}
+                            startDate={task.startDate}
+                            endDate={task.endDate}
+                            tags={task.tags}
+                            status={task.status}
+                        />)}
+                    </List>
+                </div>
             </div>
-            {(tasksLoading || tasksFetching) ? 
-            <>
-                Fetching project details
-                <br />
-                <CircularProgress />
-            </>
-            :
-            <></>
-            }
-            <CreateTask team={detailsData?.data.team} />
-            {isAdmin ? <UpdateProject /> : <></>}
+            <Loading enabled={tasksLoading || tasksFetching} msg="Fetching tasks" />
+            <CreateTask />
+            <UpdateProject disabled={!isAdmin} />
         </>
     );
 }
 
 export default ProjectPage;
-
-//TODO: Handle code multiplication (see home page) - export fetching to an external hook

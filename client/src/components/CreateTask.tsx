@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import TaskFormDialog from "./TaskFormDialog";
 import axios from "axios";
 
-const CreateTask: React.FC<{team: string[]}> = ({ team }): JSX.Element => {
+const CreateTask: React.FC = (): JSX.Element => {
     const projectId = useParams().project_id;
 
     return(

@@ -6,6 +6,7 @@ import { Typography, Chip, List, ListItem, CircularProgress } from "@mui/materia
 import Comment from "../Comment";
 import CreateComment from "../CreateComment";
 import UpdateTask from "../UpdateTask";
+import Loading from "../Loading";
 
 export interface IComment {
     id: number,
@@ -49,15 +50,6 @@ const TaskPage: React.FC = (): JSX.Element => {
     return (
         <>
         <Typography variant="h4">Task details:</Typography>
-        {(detailsLoading || detailsFetching) ? 
-        <>
-            Fetching task details
-            <br />
-            <CircularProgress />
-        </>
-        :
-        <></>
-        }
         <Typography variant="h5">title: {detailsData?.data.title}</Typography>
         <Typography variant="body1">description: {detailsData?.data.description}</Typography>
         <Typography variant="body2">start date: {detailsData?.data.startDate}</Typography>
@@ -85,20 +77,13 @@ const TaskPage: React.FC = (): JSX.Element => {
         <Typography variant="body2">
             status: {detailsData?.data.status}
         </Typography>
+        <Loading enabled={(detailsLoading || detailsFetching)} msg="Fetching task details..." />
         <Typography variant="h4">Comments:</Typography>
-        {(commentsIsLoading || commentsIsFetching) ? 
-        <>
-            Fetching comments
-            <br />
-            <CircularProgress />
-        </>
-        :
-        <></>
-        }
         <List>
             {commentsData?.data.map((comment: IComment, index: number) =>
              <Comment key={`Task ${taskId} comment ${index}`} {...comment} />)}
         </List>
+        <Loading enabled={commentsIsLoading || commentsIsFetching} msg="Fetching comments..." />
         <CreateComment />
         <UpdateTask />
         </>

@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import axios from "axios";
 import useFetch from "../hooks/useFetch";
 import useMutate from "../hooks/useMutate";
-import {
-    Typography, TextField, RadioGroup, FormControlLabel, Radio, FormLabel, Button, Autocomplete, CircularProgress
-} from "@mui/material";
 import ErrorComp from "./ErrorComp";
+import {
+    Typography, TextField, Autocomplete, FormLabel, RadioGroup, FormControlLabel, Radio, Button
+} from "@mui/material";
+import Loading from "./Loading";
 
-export interface IUseMutateParams {
+interface IUseMutateParams {
     axiosFn: Function, 
     route: string, 
     mutationConfig: object
@@ -28,7 +29,6 @@ const ProjectForm: React.FC<IUseMutateParams> = ({ axiosFn, route, mutationConfi
         event.preventDefault();
         const fd = new FormData(event.currentTarget); // .target doesn't work
         const data = { ...Object.fromEntries(fd.entries()), team };
-        
         mutate(data);
     }
 
@@ -64,11 +64,12 @@ const ProjectForm: React.FC<IUseMutateParams> = ({ axiosFn, route, mutationConfi
                             ...params.InputProps,
                             endAdornment: (
                                 <>
-                                {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                {<Loading enabled={usersLoading} msg="" />}
                                 {params.InputProps.endAdornment}
                                 </>
-                            ),
-                            }} />}
+                            )
+                            }}
+                        />}
                     sx={{ width: '500px' }}
                 />
                 <FormLabel>Status</FormLabel>
@@ -78,13 +79,7 @@ const ProjectForm: React.FC<IUseMutateParams> = ({ axiosFn, route, mutationConfi
                 </RadioGroup>
                 <Button type="submit">Submit</Button>
             </form>
-            {isLoading && 
-                <>
-                    Sending data to server...
-                    <br />
-                    <CircularProgress />
-                </>
-            }
+            <Loading enabled={isLoading} msg="Sending data to server..." />
         </>
     );
 }

@@ -5,16 +5,9 @@ import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import LoginPage from "./LoginPage";
 import ErrorComp from "../ErrorComp";
-import { Button, Typography, List, CircularProgress } from "@mui/material";
+import { Button, Typography, List } from "@mui/material";
 import Project from "../Project";
-
-
-export interface IProject {
-    id: number
-    title: string,
-    description: string,
-    status: string
-}
+import Loading from "../Loading";
 
 export interface IAccessTokenState {
     accessToken: {
@@ -22,6 +15,13 @@ export interface IAccessTokenState {
         username: string,
         isAdmin: boolean
     }
+}
+
+export interface IProject {
+    id: number
+    title: string,
+    description: string,
+    status: string
 }
 
 const HomePage: React.FC = (): JSX.Element => {
@@ -35,7 +35,7 @@ const HomePage: React.FC = (): JSX.Element => {
         dispatch(setToken(""));
         dispatch(setUsername(""));
         dispatch(setIsAdmin(false));
-        navigate("/"); // refresh page
+        navigate("/");
     }
 
     const { data, isLoading, isFetching, isError, error } = useFetch("fetchProjects", "http://localhost:5000/projects", {
@@ -43,7 +43,7 @@ const HomePage: React.FC = (): JSX.Element => {
     });
 
     if(!isLoggedIn) {
-        return <LoginPage />; // Is this a good practice?
+        return <LoginPage />;
     }
 
     if (isError)
@@ -63,20 +63,8 @@ const HomePage: React.FC = (): JSX.Element => {
                 status={status}
             />)}
             </List>
-            {(isLoading || isFetching) ? 
-            <>
-                Fetching projects
-                <br />
-                <CircularProgress />
-            </>
-            :
-            <></>
-            }
-            {isAdmin ?
-            <Button href="/create_project" variant="contained">Create Project</Button>
-            :
-            <></>
-            }
+            <Loading enabled={isLoading || isFetching} msg="Fetching projects..." />
+            <Button href="/create_project" variant="contained" disabled={!isAdmin}>Create Project</Button>
         </>
     );
 }

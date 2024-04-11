@@ -4,12 +4,14 @@ import { useParams } from "react-router-dom";
 import { useQueryClient } from "react-query";
 import useFetch from "../hooks/useFetch";
 import useMutate from "../hooks/useMutate";
+import { 
+    Button, Dialog, Typography, TextField, Autocomplete, FormLabel, RadioGroup, FormControlLabel, Radio
+} from "@mui/material";
 import ErrorComp from "./ErrorComp";
-import { Typography, TextField, Button, Dialog, Autocomplete, FormLabel, RadioGroup, CircularProgress, FormControlLabel,
-Radio } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from "dayjs";
+import Loading from "./Loading";
 
 interface ITaskFormDialogProps {
     axiosFn: Function,
@@ -21,14 +23,12 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
     const toCreate = axiosFn === axios.post;
     
     const [open, setOpen] = useState(false);
-    
     const [leaders, setLeaders] = useState(Array<string>());
     const [links, setLinks] = useState(Array<string>());
     const [tags, setTags] = useState(Array<string>());
-    // AutoComplete doesn't receive the 'name' prop so its value can't be retrieve in the handeSubmit function
+    // AutoComplete doesn't receive the 'name' prop so its value can't be retrieved in the handleSubmit function
 
     const projectId = useParams().project_id;
-    const taskId = useParams().task_id;
 
     const queryClient = useQueryClient();
 
@@ -93,7 +93,7 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
                                     ...params.InputProps,
                                     endAdornment: (
                                         <>
-                                        {usersLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {<Loading enabled={usersLoading} msg="" />}
                                         {params.InputProps.endAdornment}
                                         </>
                                     ),
@@ -143,15 +143,7 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
                         </RadioGroup>
                         <Button type="submit">Submit</Button>
                     </form>
-                    {isLoading ? 
-                    <>
-                        Creating task...
-                        <br />
-                        <CircularProgress />
-                    </>
-                    :
-                    <></>
-                    }
+                    <Loading enabled={isLoading} msg="Sending data to server..." />
                 </>
                 )
                 }

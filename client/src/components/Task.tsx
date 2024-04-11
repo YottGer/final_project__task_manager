@@ -1,6 +1,6 @@
 import React from "react";
 import { ITask } from "./pages/ProjectPage";
-import { Chip, ListItem, ListItemText, ListItemButton } from "@mui/material";
+import { ListItem, ListItemButton, ListItemText, Chip } from "@mui/material";
 import { Link } from "react-router-dom";
 
 const Task: React.FC<ITask> = ({ id, projectId, title, description, tags, status }): JSX.Element => {

@@ -63,6 +63,3 @@ interface IExtendComment extends IComment {
 
 export { IUser, IProjectInDB, IProjectForClient, IProjectFromClient, ITaskInDB, ITaskForClient, ITaskFromClient
     , ITaskToUser, IComment, IExtendComment };
-
-const foo = 8;
-export default foo;

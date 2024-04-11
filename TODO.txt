@@ -15,6 +15,7 @@ Take a look at the logic that dispatched this action:  Object
 I don't understand this error, and it doesn't seem to affect the app.
 
 - Is it ok that I return the LoginPage component inside HomePage (where the user is not logged in)?
+- Should I move the logout functionality to an external component (see HomePage)?
 
 SERVER:
 - Should I use a refresh token? What I want to do, is to ask the user to login every time the token expires.
