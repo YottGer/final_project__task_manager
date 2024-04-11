@@ -36,6 +36,13 @@ class dbAccess {
         const query = `SELECT "isAdmin" FROM "user" WHERE username='${username}';`
         this.executeQuery(query, (userRows: IUser[]) => next(userRows[0].isAdmin));
     }
+
+    public checkIsTeamMemberOfProject(username: string, projectId: string, next: Function) {
+        const query = `SELECT * FROM project_to_user 
+                        WHERE "userId"=(SELECT id FROM "user" WHERE username='${username}')
+                         AND "projectId"=${projectId};`;
+        this.executeQuery(query, (projectToUserRows: ITaskToUser[]) => next(projectToUserRows.length > 0));
+    }
     
     public checkIsLeaderOfTask(username: string, taskId: string, next: Function) {
         const query = `SELECT * FROM task_to_user 

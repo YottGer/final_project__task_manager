@@ -19,7 +19,7 @@ const wrapperMiddleware = (req: Request, res: Response, next: Function) => {
 
 const baseValdiationMiddleware = (req: Request, res: Response, next: Function) => {
     // This is a basic validation middleware, that is meant to prevent SQL injection attacks
-    if (Object.values(req.body).includes("'"))
+    if (Object.values(req.body).join("").includes("'"))
         return res.status(409).send("Invalid charcater!");
     next();
 }
@@ -37,6 +37,16 @@ const autherizeTokenMiddleware = (req: Request, res: Response, next: Function) =
             next();
         });
     })
+}
+
+const isTeamMemberOfProjectMiddleware = (req: any, res: Response, next: Function) => { 
+    // Couldn't understand how to reduce the type of req
+    const username = req.username;
+    const projectId = req.params.projectId;
+    db.checkIsTeamMemberOfProject(username, projectId, (isTeamMember: boolean) => {
+        Object.assign(req, { isTeamMember: isTeamMember });
+        next();
+    });
 }
 
 const isLeaderOfTaskMiddleware = (req: any, res: Response, next: Function) => { 
@@ -113,9 +123,14 @@ router.post("/create_project", baseValdiationMiddleware, (req: any, res) => { //
         res.status(401).send("Must be an admin to create project!");
 });
 
-router.post("/project/:projectId/create_task", baseValdiationMiddleware, (req, res) => {
-    if (req.body.leaders.length > 0 && req.body.tags.length > 0 && req.body.links.length > 0)
-        db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+router.post("/project/:projectId/create_task", baseValdiationMiddleware, isTeamMemberOfProjectMiddleware, (req: any, res) => {
+    // See comment in isLeaderOfTaskMiddleware
+    if (req.body.leaders.length > 0 && req.body.tags.length > 0 && req.body.links.length > 0) {
+        if (req.isTeamMember || req.isAdmin)
+            db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+        else
+            res.sendStatus(403);
+    }
     else
         res.status(400).send("Leaders and tags mustn't be empty!");
 });

@@ -3,8 +3,9 @@ import { useParams } from "react-router-dom";
 import { useQueryClient } from "react-query";
 import useMutate from "../hooks/useMutate";
 import axios from "axios";
-import { TextField, Button, Dialog, CircularProgress } from "@mui/material";
+import {  Button, Dialog, TextField } from "@mui/material";
 import ErrorComp from "./ErrorComp";
+import Loading from "./Loading";
 
 const CreateComment: React.FC = (): JSX.Element => {
     const [open, setOpen] = useState(false);
@@ -44,17 +45,7 @@ const CreateComment: React.FC = (): JSX.Element => {
                     <TextField label="content" name="content" margin="normal" required />
                     <Button type="submit">submit</Button>
                 </form>
-                <>
-                {isLoading ? 
-                <>
-                    Creating comment...
-                    <br />
-                    <CircularProgress />
-                </>
-                :
-                <></>
-                }
-                </>
+                <Loading enabled={isLoading} msg="Creating comment..." />
             </>
             }
         </Dialog>
