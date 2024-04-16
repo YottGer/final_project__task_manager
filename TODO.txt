@@ -19,7 +19,6 @@ I don't understand this error, and it doesn't seem to affect the app.
 
 SERVER:
 - Should I use a refresh token? What I want to do, is to ask the user to login every time the token expires.
-- Make sure that every user registered as a leader of a new/updated task is indeed a member of the project's team.
 - Error catching.
 
 DB:
