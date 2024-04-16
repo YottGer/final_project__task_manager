@@ -36,13 +36,6 @@ class dbAccess {
         this.executeQuery(query, (userRows: IUser[]) => next(userRows[0].isAdmin));
     }
 
-    // public checkIsTeamMemberOfProject(username: string, projectId: string, next: Function) {
-    //     const query = `SELECT * FROM project_to_user 
-    //                     WHERE "userId"=(SELECT id FROM "user" WHERE username='${username}')
-    //                      AND "projectId"=${projectId};`;
-    //     this.executeQuery(query, (projectToUserRows: ITaskToUser[]) => next(projectToUserRows.length > 0));
-    // }
-
     public checkAreTeamMembersOfProject(usernames: string[], projectId: string, next: Function) {
         const query = `SELECT username FROM project_to_user
                         INNER JOIN "user" ON "project_to_user"."userId"="user"."id"
