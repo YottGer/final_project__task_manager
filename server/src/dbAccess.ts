@@ -20,7 +20,6 @@ class dbAccess {
     }
     
     public executeQuery(query: string, next: Function) {
-        console.log(query);
         this.dbClient.query(query)
             .then(result => next(result.rows))
             .catch(err => { throw new Error(err.message) })
@@ -37,11 +36,20 @@ class dbAccess {
         this.executeQuery(query, (userRows: IUser[]) => next(userRows[0].isAdmin));
     }
 
-    public checkIsTeamMemberOfProject(username: string, projectId: string, next: Function) {
-        const query = `SELECT * FROM project_to_user 
-                        WHERE "userId"=(SELECT id FROM "user" WHERE username='${username}')
-                         AND "projectId"=${projectId};`;
-        this.executeQuery(query, (projectToUserRows: ITaskToUser[]) => next(projectToUserRows.length > 0));
+    // public checkIsTeamMemberOfProject(username: string, projectId: string, next: Function) {
+    //     const query = `SELECT * FROM project_to_user 
+    //                     WHERE "userId"=(SELECT id FROM "user" WHERE username='${username}')
+    //                      AND "projectId"=${projectId};`;
+    //     this.executeQuery(query, (projectToUserRows: ITaskToUser[]) => next(projectToUserRows.length > 0));
+    // }
+
+    public checkAreTeamMembersOfProject(usernames: string[], projectId: string, next: Function) {
+        const query = `SELECT username FROM project_to_user
+                        INNER JOIN "user" ON "project_to_user"."userId"="user"."id"
+                         WHERE "projectId"=${projectId};`;
+        this.executeQuery(query, (usernameObjs: { username: string }[]) => next(
+            !usernames.some(username => usernameObjs.map(usernameObj => usernameObj.username).indexOf(username) === -1)
+        ));
     }
     
     public checkIsLeaderOfTask(username: string, taskId: string, next: Function) {

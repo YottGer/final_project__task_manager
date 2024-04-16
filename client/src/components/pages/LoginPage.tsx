@@ -6,6 +6,7 @@ import useMutate from "../../hooks/useMutate";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { Grid, Paper, Avatar, TextField, Button, Typography, CircularProgress } from "@mui/material";
 import LockIcon from '@mui/icons-material/Lock';
+import Loading from "../Loading";
 import ErrorComp from "../ErrorComp";
 
 const LoginPage: React.FC = (): JSX.Element => {
@@ -62,18 +63,13 @@ const LoginPage: React.FC = (): JSX.Element => {
                             type="submit" 
                             color="primary" 
                             variant="contained"
+                            disabled={isLoading}
                             >Login</Button>
                         </Grid>
                     </form>
                 </Grid>
             </Paper>
-            {isLoading && 
-                <>
-                    Logging in...
-                    <br />
-                    <CircularProgress />
-                </>
-            }
+            <Loading enabled={isLoading} msg="Logging in..." />
             {isError ? 
             ((error instanceof AxiosError && error.response?.status === 401) ?
             (showTryAgain ? <>Username and password don't match! try again...</> : <></>)
@@ -86,19 +82,3 @@ const LoginPage: React.FC = (): JSX.Element => {
 }
 
 export default LoginPage;
-
-/*
-I always get the following error in the console:
-
-index.tsx:15 A non-serializable value was detected in an action, in the path: `register`. Value: ƒ register(key) {
-    _pStore.dispatch({
-      type: _constants__WEBPACK_IMPORTED_MODULE_0__.REGISTER,
-      key: key
-    });
-  } 
-Take a look at the logic that dispatched this action:  {type: 'persist/PERSIST', register: ƒ, rehydrate: ƒ} 
-(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
-(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)
-
-I don't understand what it means, and it doesn't seem to affect the app.
-*/

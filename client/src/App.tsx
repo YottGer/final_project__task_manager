@@ -1,5 +1,5 @@
 import { QueryClientProvider, QueryClient } from "react-query";
-import { createRoutesFromElements, Route, createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createRoutesFromElements, Route, createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import HomePage from "./components/pages/HomePage";
 import LoginPage from "./components/pages/LoginPage";
 import CreateProjectPage from "./components/pages/CreateProjectPage";
@@ -9,18 +9,7 @@ import { useSelector } from "react-redux";
 import { CssBaseline, ThemeProvider, createTheme, Button, Typography } from "@mui/material";
 import ThemeSwitch from "./components/ThemeSwitch";
 
-const routerDefinitions = createRoutesFromElements(
-  <Route>
-    <Route path="/" element={<HomePage />} />
-    <Route path="/login" element={<LoginPage />} /> 
-    <Route path="/create_project" element={<CreateProjectPage />} />
-    <Route path="/project/:project_id" element={<ProjectPage />} />
-    <Route path="/project/:project_id/task/:task_id" element={<TaskPage />} />
-  </Route>
-);
-
 const queryClient = new QueryClient();
-const router = createBrowserRouter(routerDefinitions);
 
 interface IIsDarkThemeState {
   isDarkTheme: {
@@ -38,7 +27,20 @@ export interface IAccessTokenState {
 
 function App() {
   const { token, username, isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
+  console.log(token);
   const isLoggedIn = token !== "";
+
+  const routerDefinitions = createRoutesFromElements(
+    <Route>
+      <Route path="/login" element={<LoginPage />} /> 
+      <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" />} />
+      <Route path="/create_project" element={isAdmin ? <CreateProjectPage /> : <Navigate to="/" />} />
+      <Route path="/project/:project_id" element={isLoggedIn ? <ProjectPage /> : <Navigate to="/login" />} />
+      <Route path="/project/:project_id/task/:task_id" element={isLoggedIn ? <TaskPage /> : <Navigate to="/login" />} />
+    </Route>
+  );
+
+  const router = createBrowserRouter(routerDefinitions);
 
   const { isDarkTheme } = useSelector((state: IIsDarkThemeState) => state.isDarkTheme);
   const theme = createTheme({

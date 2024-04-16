@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUsername, setIsAdmin } from "../../features/accessToken/accessTokenSlice";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
-import LoginPage from "./LoginPage";
 import ErrorComp from "../ErrorComp";
 import { Button, Typography, List } from "@mui/material";
 import Project from "../Project";
@@ -25,8 +24,7 @@ export interface IProject {
 }
 
 const HomePage: React.FC = (): JSX.Element => {
-    const { token, isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
-    const isLoggedIn = token !== "";
+    const { isAdmin } = useSelector((state: IAccessTokenState) => state.accessToken);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -38,13 +36,7 @@ const HomePage: React.FC = (): JSX.Element => {
         navigate("/");
     }
 
-    const { data, isLoading, isFetching, isError, error } = useFetch("fetchProjects", "http://localhost:5000/projects", {
-        enabled: isLoggedIn
-    });
-
-    if(!isLoggedIn) {
-        return <LoginPage />;
-    }
+    const { data, isLoading, isFetching, isError, error } = useFetch("fetchProjects", "http://localhost:5000/projects");
 
     if (isError)
         return <ErrorComp err={error} />;

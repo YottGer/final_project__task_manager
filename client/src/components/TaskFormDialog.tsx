@@ -141,7 +141,7 @@ const TaskFormDialog: React.FC<ITaskFormDialogProps> = ({ axiosFn, route, toInva
                             <FormControlLabel value="maintenance" control={<Radio />} label="maintenance" />
                             <FormControlLabel value="done" control={<Radio />} label="done" />
                         </RadioGroup>
-                        <Button type="submit">Submit</Button>
+                        <Button type="submit" disabled={isLoading}>Submit</Button>
                     </form>
                     <Loading enabled={isLoading} msg="Sending data to server..." />
                 </>

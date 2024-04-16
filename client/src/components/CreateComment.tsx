@@ -43,7 +43,7 @@ const CreateComment: React.FC = (): JSX.Element => {
                 }}>
                     <TextField label="title" name="title" margin="normal" required />
                     <TextField label="content" name="content" margin="normal" required />
-                    <Button type="submit">submit</Button>
+                    <Button type="submit" disabled={isLoading}>submit</Button>
                 </form>
                 <Loading enabled={isLoading} msg="Creating comment..." />
             </>

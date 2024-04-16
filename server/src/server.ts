@@ -39,18 +39,25 @@ const autherizeTokenMiddleware = (req: Request, res: Response, next: Function) =
     })
 }
 
-const isTeamMemberOfProjectMiddleware = (req: any, res: Response, next: Function) => { 
-    // Couldn't understand how to reduce the type of req
+const areClientAndLeadersTeamMembersOfProject = (req: any, res: Response, next: Function) => { 
+    // See comment in isLeaderOfTaskMiddleware
+    // First, I check whether the creator is a team member of the project
     const username = req.username;
     const projectId = req.params.projectId;
-    db.checkIsTeamMemberOfProject(username, projectId, (isTeamMember: boolean) => {
-        Object.assign(req, { isTeamMember: isTeamMember });
-        next();
+    db.checkAreTeamMembersOfProject([username], projectId, (isClientTeamMember: boolean) => {
+        Object.assign(req, { isClientTeamMember: isClientTeamMember });
+        // Now I check whether the leaders are team members
+        db.checkAreTeamMembersOfProject(req.body.leaders ?? [], projectId, (areLeadersTeamMembers: boolean) => {
+            Object.assign(req, { areLeadersTeamMembers: areLeadersTeamMembers });
+            next();
+        })
     });
 }
 
 const isLeaderOfTaskMiddleware = (req: any, res: Response, next: Function) => { 
-    // Couldn't understand how to reduce the type of req
+    /* Couldn't understand how to reduce the type of req
+     * (it can't be Request, because I add properties such as username and isAdmin)
+    */
     const username = req.username;
     const taskId = req.params.taskId;
     db.checkIsLeaderOfTask(username, taskId, (isLeader: boolean) => {
@@ -123,11 +130,17 @@ router.post("/create_project", baseValdiationMiddleware, (req: any, res) => { //
         res.status(401).send("Must be an admin to create project!");
 });
 
-router.post("/project/:projectId/create_task", baseValdiationMiddleware, isTeamMemberOfProjectMiddleware, (req: any, res) => {
+router.post("/project/:projectId/create_task", baseValdiationMiddleware, areClientAndLeadersTeamMembersOfProject,
+ (req: any, res) => {
     // See comment in isLeaderOfTaskMiddleware
-    if (req.body.leaders.length > 0 && req.body.tags.length > 0 && req.body.links.length > 0) {
-        if (req.isTeamMember || req.isAdmin)
-            db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+    const inputNotEmpty = req.body.leaders.length > 0 && req.body.tags.length > 0 && req.body.links.length > 0;
+    if (inputNotEmpty) {
+        if (req.isClientTeamMember || req.isAdmin) {
+            if (req.areLeadersTeamMembers)
+                db.createTask(req.params.projectId, req.body, () => res.sendStatus(200));
+            else
+                res.status(400).send("Leaders must be team members of the project!");
+        }
         else
             res.sendStatus(403);
     }
@@ -146,10 +159,15 @@ router.put("/project/:projectId/update", baseValdiationMiddleware, (req: any, re
         res.status(403).send("Unauthorized - nothing updated!");
 });
 
-router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, isLeaderOfTaskMiddleware, (req: any, res) => {
+router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, isLeaderOfTaskMiddleware,
+ areClientAndLeadersTeamMembersOfProject, (req: any, res) => {
     // See comment in isLeaderOfTaskMiddleware
-    if (req.isAdmin)
-        db.updateTask(req.params.taskId, req.body, () => res.sendStatus(200));
+    if (req.isAdmin) {
+        if (req.body.leaders.length === 0 || req.areLeadersTeamMembers)
+            db.updateTask(req.params.taskId, req.body, () => res.sendStatus(200));
+        else
+        res.status(400).send("Leaders must be team members of the project!");
+    }
     else if (req.isLeader)
         db.updateTask(req.params.taskId, {
             ...req.body, startDate: "", endDate: "", tags: [], links: [], leaders: []

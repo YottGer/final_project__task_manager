@@ -77,7 +77,7 @@ const ProjectForm: React.FC<IUseMutateParams> = ({ axiosFn, route, mutationConfi
                     <FormControlLabel value="development" control={<Radio />} label="development" />
                     <FormControlLabel value="maintenance" control={<Radio />} label="maintenance" />
                 </RadioGroup>
-                <Button type="submit">Submit</Button>
+                <Button type="submit" disabled={isLoading}>Submit</Button>
             </form>
             <Loading enabled={isLoading} msg="Sending data to server..." />
         </>
