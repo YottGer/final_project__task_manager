@@ -72,7 +72,6 @@ const router = express();
 router.use(json());
 router.use(cors());
 router.use(wrapperMiddleware);
-router.use("/project/:projectId/task/:taskId/update", isLeaderOfTaskMiddleware);
 
 // routes
 router.get("/users", (req, res) => {
@@ -174,6 +173,11 @@ router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, 
         }, () => res.sendStatus(200));
     else
         res.status(403).send("Unauthorized - nothing updated!");
+});
+
+router.use((err: Error, req: Request, res: Response, next: Function) => {
+    console.error(err.stack);
+    res.status(500).send(err.message);
 });
 
 const port = 5000;

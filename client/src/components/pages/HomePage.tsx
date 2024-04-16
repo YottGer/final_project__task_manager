@@ -46,6 +46,7 @@ const HomePage: React.FC = (): JSX.Element => {
             <Button onClick={logout} variant="contained">Logout</Button>
             <Typography variant="h5">Your projects:</Typography>    
             <List>
+            {console.log(data)}
             {data?.data.map(({ id, title, description, status }: IProject) =>
             <Project
                 key={"project" + id}

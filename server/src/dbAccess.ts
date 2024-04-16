@@ -22,7 +22,7 @@ class dbAccess {
     public executeQuery(query: string, next: Function) {
         this.dbClient.query(query)
             .then(result => next(result.rows))
-            .catch(err => { throw new Error(err.message) })
+            .catch(err => next(err));
     }   
     
     public checkUsernamePassword(username: string, password: string, next: Function) {
@@ -59,7 +59,7 @@ class dbAccess {
     
     public getProjects(username: string, isAdmin: boolean, next: Function) {
         const query =
-         isAdmin ? `SELECT * FROM project;` // An admin gets all the projects
+         isAdmin ? `wSELECT * FROM project;` // An admin gets all the projects
          : `SELECT DISTINCT ON ("projectId") "projectId" AS id, title, description, status FROM project
                 INNER JOIN project_to_user ON project.id=project_to_user."projectId"
                 INNER JOIN "user" ON project_to_user."userId"="user".id
