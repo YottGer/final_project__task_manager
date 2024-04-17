@@ -1,10 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config({path: "../.env"});
+import dbAccess from "./dbAccess";
 import express, { json, Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 const cors = require("cors"); // import doesn't work, so I have to use require()
-import dbAccess from "./dbAccess";
 import { IProjectInDB, IProjectForClient, ITaskInDB, ITaskForClient, IUser, IExtendComment } from "./interfaces";
+import dotenv from "dotenv";
+dotenv.config({path: "../.env"});
 
 const secret = process.env.ACCESS_TOKEN_SECRET ?? "";
 const refreshSecret = process.env.REFRESH_TOKEN_SECRET; //How should I use a refresh token?
@@ -74,14 +74,14 @@ router.use(cors());
 router.use(wrapperMiddleware);
 
 // routes
-router.get("/users", (req, res) => {
+router.get("/users", (_, res) => {
     db.getUsers((userRows: IUser[]) => res.status(200).send(userRows));
 });
 
 router.get("/projects", (req: any, res) => { // See comment in isLeaderOfTaskMiddleware
     const { username, isAdmin } = req;
     db.getProjects(username, isAdmin, (projectRows: IProjectInDB[]) => res.status(200).send(projectRows));
-})
+});
 
 router.get("/project/:projectId", (req, res) => {
     const projectId = req.params.projectId;
@@ -173,11 +173,6 @@ router.put("/project/:projectId/task/:taskId/update", baseValdiationMiddleware, 
         }, () => res.sendStatus(200));
     else
         res.status(403).send("Unauthorized - nothing updated!");
-});
-
-router.use((err: Error, req: Request, res: Response, next: Function) => {
-    console.error(err.stack);
-    res.status(500).send(err.message);
 });
 
 const port = 5000;
